@@ -51,6 +51,8 @@ abstract class BrefKernel extends Kernel
 
     protected function prepareCacheDir(string $staticCacheDir, string $tempCacheDir): void
     {
+        $startTime = microtime(true);
+
         $filesystem = new Filesystem;
         $filesystem->mkdir($tempCacheDir);
 
@@ -75,5 +77,22 @@ abstract class BrefKernel extends Kernel
             // and copy all other files, i had intermediate problems when linking them
             $filesystem->copy("$staticCacheDir/$item", "$tempCacheDir/$item");
         }
+
+        $this->logToStderr(sprintf(
+            'cache directory prepared in %s ms.',
+            number_format((microtime(true) - $startTime) * 1000)
+        ));
+    }
+
+    /**
+     * This method logs to stderr.
+     *
+     * It must only be used in a lambda environment since all error output will be logged.
+     *
+     * @param string $message The message to log
+     */
+    protected function logToStderr(string $message): void
+    {
+        file_put_contents('php://stderr', date('[c] ') . $message . PHP_EOL, FILE_APPEND);
     }
 }

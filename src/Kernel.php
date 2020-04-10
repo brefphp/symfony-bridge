@@ -50,20 +50,18 @@ abstract class Kernel extends BaseKernel
                 continue;
             }
 
-            // the pools folder needs to be writable so mirror it
-            if ($item === 'pools') {
+            // then container must be linked because it uses require_once statements into the vendor folder
+            if (substr($item, 0, 9) === 'Container') {
+                $filesystem->symlink("$staticCacheDir/$item", "$tempCacheDir/$item");
+            }
+
+            // copy everything else
+
+            if (is_dir("$staticCacheDir/$item")) {
                 $filesystem->mirror("$staticCacheDir/$item", "$tempCacheDir/$item");
                 continue;
             }
 
-            // symlink all folders other folders
-            // this is especially important with the Container* folder since it uses require_once statements
-            if (is_dir("$staticCacheDir/$item")) {
-                $filesystem->symlink("$staticCacheDir/$item", "$tempCacheDir/$item");
-                continue;
-            }
-
-            // and copy all other files, i had intermediate problems when linking them
             $filesystem->copy("$staticCacheDir/$item", "$tempCacheDir/$item");
         }
     }

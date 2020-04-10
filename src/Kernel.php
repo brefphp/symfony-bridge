@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Bref\SymfonyBridge;
 
@@ -12,6 +12,9 @@ abstract class Kernel extends BaseKernel
         return getenv('LAMBDA_TASK_ROOT') !== false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function getCacheDir()
     {
         if ($this->isLambda()) {
@@ -21,6 +24,9 @@ abstract class Kernel extends BaseKernel
         return parent::getCacheDir();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function getLogDir()
     {
         if ($this->isLambda()) {
@@ -30,10 +36,13 @@ abstract class Kernel extends BaseKernel
         return parent::getLogDir();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function boot()
     {
         // When on the lambda, copy the cache dir over to /tmp where it is writable
-        if ($this->isLambda() && !is_dir($this->getCacheDir())) {
+        if ($this->isLambda() && ! is_dir($this->getCacheDir())) {
             $this->prepareCacheDir(parent::getCacheDir(), $this->getCacheDir());
         }
 
@@ -42,7 +51,7 @@ abstract class Kernel extends BaseKernel
 
     protected function prepareCacheDir(string $staticCacheDir, string $tempCacheDir): void
     {
-        $filesystem = new Filesystem();
+        $filesystem = new Filesystem;
         $filesystem->mkdir($tempCacheDir);
 
         foreach (scandir($staticCacheDir, SCANDIR_SORT_NONE) as $item) {

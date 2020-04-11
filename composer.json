@@ -20,15 +20,12 @@
     },
     "require": {
         "php": "^7.3",
-        "symfony/filesystem": "^4.4|^5.0",
         "symfony/http-kernel": "^4.4|^5.0"
     },
     "require-dev": {
         "mnapoli/hard-mode": "^0.2.0",
         "phpstan/phpstan": "^0.12.0",
-        "phpunit/phpunit": "^8.0",
-        "symfony/config": "^4.4|^5.0",
-        "symfony/dependency-injection": "^4.4|^5.0"
+        "phpunit/phpunit": "^8.0"
     },
     "config": {
         "sort-packages": true

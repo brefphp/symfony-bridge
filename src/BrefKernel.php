@@ -3,9 +3,9 @@
 namespace Bref\SymfonyBridge;
 
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpKernel\Kernel as BaseKernel;
+use Symfony\Component\HttpKernel\Kernel;
 
-abstract class Kernel extends BaseKernel
+abstract class BrefKernel extends Kernel
 {
     public function isLambda(): bool
     {

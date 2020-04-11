@@ -79,7 +79,7 @@ abstract class BrefKernel extends Kernel
         }
 
         $this->logToStderr(sprintf(
-            'cache directory prepared in %s ms.',
+            'Symfony cache directory prepared in %s ms.',
             number_format((microtime(true) - $startTime) * 1000, 2)
         ));
     }

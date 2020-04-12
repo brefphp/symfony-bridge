@@ -49,33 +49,46 @@ abstract class BrefKernel extends Kernel
         return parent::boot();
     }
 
-    protected function prepareCacheDir(string $staticCacheDir, string $tempCacheDir): void
+    /**
+     * Return the pre-warmed directories in var/cache/[env] that should be copied to
+     * a writable directory in the Lambda environment.
+     *
+     * For optimal performance one should prewarm the cache folder and override this
+     * function to return an empty array.
+     */
+    protected function getWritableCacheDirectories(): array
+    {
+        return ['pools'];
+    }
+
+    protected function prepareCacheDir(string $readOnlyDir, string $writeDir): void
     {
         $startTime = microtime(true);
+        $cacheDirectoriesToCopy = $this->getWritableCacheDirectories();
 
         $filesystem = new Filesystem;
-        $filesystem->mkdir($tempCacheDir);
+        $filesystem->mkdir($writeDir);
 
-        foreach (scandir($staticCacheDir, SCANDIR_SORT_NONE) as $item) {
+        foreach (scandir($readOnlyDir, SCANDIR_SORT_NONE) as $item) {
             if (in_array($item, ['.', '..'])) {
                 continue;
             }
 
-            // the pools folder needs to be writable so mirror it
-            if ($item === 'pools') {
-                $filesystem->mirror("$staticCacheDir/$item", "$tempCacheDir/$item");
+            // Copy directories to a writable space on Lambda.
+            if (in_array($item, $cacheDirectoriesToCopy)) {
+                $filesystem->mirror("$readOnlyDir/$item", "$writeDir/$item");
                 continue;
             }
 
-            // symlink all folders other folders
-            // this is especially important with the Container* folder since it uses require_once statements
-            if (is_dir("$staticCacheDir/$item")) {
-                $filesystem->symlink("$staticCacheDir/$item", "$tempCacheDir/$item");
+            // Symlink all other directories
+            // This is especially important with the Container* directories since it uses require_once statements
+            if (is_dir("$readOnlyDir/$item")) {
+                $filesystem->symlink("$readOnlyDir/$item", "$writeDir/$item");
                 continue;
             }
 
-            // and copy all other files, i had intermediate problems when linking them
-            $filesystem->copy("$staticCacheDir/$item", "$tempCacheDir/$item");
+            // Copy all other files.
+            $filesystem->copy("$readOnlyDir/$item", "$writeDir/$item");
         }
 
         $this->logToStderr(sprintf(

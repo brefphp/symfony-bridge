@@ -55,7 +55,7 @@ abstract class BrefKernel extends Kernel
      */
     protected function getWritableCacheDirectories(): array
     {
-        return ['pools'];
+        return [];
     }
 
     protected function prepareCacheDir(string $readOnlyDir, string $writeDir): void

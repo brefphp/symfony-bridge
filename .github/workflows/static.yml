@@ -11,6 +11,8 @@ jobs:
 
       - name: PHPStan
         uses: docker://oskarstark/phpstan-ga
+        env:
+          REQUIRE_DEV: true
         with:
           args: analyze --no-progress
 
@@ -26,3 +28,5 @@ jobs:
 
       - name: PHPCS check
         uses: chekalsky/phpcs-action@v1
+        with:
+          phpcs_bin_path: './vendor/bin/phpcs'

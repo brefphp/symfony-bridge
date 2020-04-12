@@ -53,6 +53,4 @@ jobs:
         env:
           SYMFONY_DEPRECATIONS_HELPER: "max[self]=0"
         run: |
-          ./vendor/bin/simple-phpunit -v --coverage-text --coverage-clover=coverage.xml
-          wget https://scrutinizer-ci.com/ocular.phar
-          php ocular.phar code-coverage:upload --format=php-clover coverage.xml
+          ./vendor/bin/phpunit -v --coverage-text --coverage-clover=coverage.xml

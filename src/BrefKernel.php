@@ -71,13 +71,13 @@ abstract class BrefKernel extends Kernel
                 continue;
             }
 
-            // Copy folders to a writable space on Lambda.
+            // Copy directories to a writable space on Lambda.
             if (in_array($item, $cacheDirectoriesToCopy)) {
                 $filesystem->mirror("$readOnlyDir/$item", "$writeDir/$item");
                 continue;
             }
 
-            // Symlink all folders other directories
+            // Symlink all other directories
             // This is especially important with the Container* directories since it uses require_once statements
             if (is_dir("$readOnlyDir/$item")) {
                 $filesystem->symlink("$readOnlyDir/$item", "$writeDir/$item");

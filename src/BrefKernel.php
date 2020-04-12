@@ -52,10 +52,13 @@ abstract class BrefKernel extends Kernel
     /**
      * Return the pre-warmed directories in var/cache/[env] that should be copied to
      * a writable directory in the Lambda environment.
+     *
+     * For optimal performance one should prewarm the cache folder and override this
+     * function to return an empty array.
      */
     protected function getWritableCacheDirectories(): array
     {
-        return [];
+        return ['pools'];
     }
 
     protected function prepareCacheDir(string $readOnlyDir, string $writeDir): void

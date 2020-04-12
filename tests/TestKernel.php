@@ -14,6 +14,7 @@ class TestKernel extends BrefKernel
 
     public function registerBundles()
     {
+        return [];
     }
 
     public function registerContainerConfiguration(LoaderInterface $loader)

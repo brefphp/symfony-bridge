@@ -5,5 +5,7 @@
     <file>src</file>
     <file>tests</file>
 
+    <exclude-pattern>tests/Functional/App/*</exclude-pattern>
+
     <rule ref="HardMode"/>
 </ruleset>

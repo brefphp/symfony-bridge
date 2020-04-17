@@ -21,6 +21,7 @@ class FunctionalTest extends TestCase
         $this->composerInstall();
         $this->clearCache();
         $symfonyConsole = $this->runSymfonyConsole();
+        $this->assertCommandIsSuccessful($symfonyConsole);
         $this->assertStringContainsString('Symfony is compiling the container', $symfonyConsole->getOutput());
     }
 
@@ -101,6 +102,8 @@ class FunctionalTest extends TestCase
 
     private function assertCommandIsSuccessful(Process $command): void
     {
-        $this->assertTrue($command->isSuccessful(), $command->getOutput() . PHP_EOL . $command->getErrorOutput());
+        $message = $command->getOutput() . PHP_EOL . $command->getErrorOutput();
+        $this->assertTrue($command->isSuccessful(), $message);
+        $this->assertStringNotContainsString('Warning', $command->getErrorOutput(), $message);
     }
 }

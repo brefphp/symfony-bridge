@@ -63,6 +63,10 @@ abstract class BrefKernel extends Kernel
 
     protected function prepareCacheDir(string $readOnlyDir, string $writeDir): void
     {
+        if (! is_dir($readOnlyDir)) {
+            return;
+        }
+
         $startTime = microtime(true);
         $cacheDirectoriesToCopy = $this->getWritableCacheDirectories();
 

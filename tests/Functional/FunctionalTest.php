@@ -77,7 +77,7 @@ class FunctionalTest extends TestCase
         $composerInstall->mustRun();
     }
 
-    private function runSymfonyConsole(): Process
+    private function runSymfonyConsole(string $command = 'app:ping'): Process
     {
         $projectRoot = dirname(__DIR__, 2);
 
@@ -94,6 +94,7 @@ class FunctionalTest extends TestCase
             // Run bin/console
             'tests/Functional/App/bin/console',
             '--env=prod',
+            $command,
         ]);
         $dockerCommand->run();
 

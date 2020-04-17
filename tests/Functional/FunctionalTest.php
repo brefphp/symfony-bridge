@@ -13,7 +13,15 @@ class FunctionalTest extends TestCase
         $this->composerInstall();
         $this->clearCache();
         $symfonyConsole = $this->runSymfonyConsole();
-        $this->assertTrue($symfonyConsole->isSuccessful());
+        $this->assertCommandIsSuccessful($symfonyConsole);
+    }
+
+    public function test Symfony compiles the container with an empty cache(): void
+    {
+        $this->composerInstall();
+        $this->clearCache();
+        $symfonyConsole = $this->runSymfonyConsole();
+        $this->assertStringContainsString('Symfony is compiling the container', $symfonyConsole->getOutput());
     }
 
     public function test Symfony works with a compiled container(): void
@@ -22,7 +30,16 @@ class FunctionalTest extends TestCase
         $this->clearCache();
         $this->warmupCache();
         $symfonyConsole = $this->runSymfonyConsole();
-        $this->assertTrue($symfonyConsole->isSuccessful());
+        $this->assertCommandIsSuccessful($symfonyConsole);
+    }
+
+    public function test Symfony does not recompile the container if the cache exists(): void
+    {
+        $this->composerInstall();
+        $this->clearCache();
+        $this->warmupCache();
+        $symfonyConsole = $this->runSymfonyConsole();
+        $this->assertStringNotContainsString('Symfony is compiling the container', $symfonyConsole->getOutput());
     }
 
     private function composerInstall(): void
@@ -72,8 +89,13 @@ class FunctionalTest extends TestCase
             // Run bin/console
             'tests/Functional/App/bin/console',
         ]);
-        $dockerCommand->mustRun();
+        $dockerCommand->run();
 
         return $dockerCommand;
+    }
+
+    private function assertCommandIsSuccessful(Process $command): void
+    {
+        $this->assertTrue($command->isSuccessful(), $command->getOutput() . PHP_EOL . $command->getErrorOutput());
     }
 }

@@ -21,6 +21,7 @@ class FunctionalTest extends TestCase
         $this->composerInstall();
         $this->clearCache();
         $symfonyConsole = $this->runSymfonyConsole();
+        $this->assertCommandIsSuccessful($symfonyConsole);
         $this->assertStringContainsString('Symfony is compiling the container', $symfonyConsole->getOutput());
     }
 
@@ -44,6 +45,8 @@ class FunctionalTest extends TestCase
 
     private function composerInstall(): void
     {
+        $symfonyRequirement = getenv('SYMFONY_REQUIRE');
+        $symfonyRequirement = $symfonyRequirement === false ? '4.4.*' : $symfonyRequirement;
         $composerInstall = new Process([
             'composer',
             'install',
@@ -51,6 +54,8 @@ class FunctionalTest extends TestCase
             '--no-interaction',
             '--prefer-dist',
             '--optimize-autoloader',
+        ], null, [
+            'SYMFONY_REQUIRE' => $symfonyRequirement,
         ]);
         $composerInstall->setWorkingDirectory(__DIR__ . '/App');
         $composerInstall->mustRun();
@@ -88,6 +93,7 @@ class FunctionalTest extends TestCase
             'bref/php-74',
             // Run bin/console
             'tests/Functional/App/bin/console',
+            '--version',
         ]);
         $dockerCommand->run();
 
@@ -96,6 +102,9 @@ class FunctionalTest extends TestCase
 
     private function assertCommandIsSuccessful(Process $command): void
     {
-        $this->assertTrue($command->isSuccessful(), $command->getOutput() . PHP_EOL . $command->getErrorOutput());
+        $message = $command->getOutput() . PHP_EOL . $command->getErrorOutput();
+        $this->assertTrue($command->isSuccessful(), $message);
+        $this->assertStringNotContainsStringIgnoringCase('Warning', $message, $message);
+        $this->assertStringNotContainsStringIgnoringCase('Error', $message, $message);
     }
 }

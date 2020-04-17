@@ -29,6 +29,8 @@ jobs:
         run: composer update --no-interaction --prefer-dist --optimize-autoloader --prefer-stable
 
       - name: Run tests
+        env:
+          SYMFONY_REQUIRE: ${{ matrix.sf_version }}
         run: ./vendor/bin/phpunit
 
   lowest:

@@ -47,6 +47,7 @@ class FunctionalTest extends TestCase
     {
         $symfonyRequirement = getenv('SYMFONY_REQUIRE');
         $symfonyRequirement = $symfonyRequirement === false ? '4.4.*' : $symfonyRequirement;
+
         $composerInstall = new Process([
             'composer',
             'install',
@@ -80,6 +81,8 @@ class FunctionalTest extends TestCase
     private function runSymfonyConsole(): Process
     {
         $projectRoot = dirname(__DIR__, 2);
+        $phpVersion = getenv('PHP_VERSION');
+        $phpVersion = $phpVersion === false ? '74' : str_replace('.', '', $phpVersion);
 
         $dockerCommand = new Process([
             'docker',
@@ -90,7 +93,7 @@ class FunctionalTest extends TestCase
             $projectRoot . ':/var/task:ro',
             '--entrypoint',
             'php',
-            'bref/php-74',
+            'bref/php-'.$phpVersion,
             // Run bin/console
             'tests/Functional/App/bin/console',
             '--version',

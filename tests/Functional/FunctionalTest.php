@@ -93,7 +93,7 @@ class FunctionalTest extends TestCase
             'bref/php-74',
             // Run bin/console
             'tests/Functional/App/bin/console',
-            '--version',
+            '--env=prod',
         ]);
         $dockerCommand->run();
 

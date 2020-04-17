@@ -69,11 +69,15 @@ abstract class BrefKernel extends Kernel
 
         $startTime = microtime(true);
         $cacheDirectoriesToCopy = $this->getWritableCacheDirectories();
-
         $filesystem = new Filesystem;
         $filesystem->mkdir($writeDir);
 
-        foreach (scandir($readOnlyDir, SCANDIR_SORT_NONE) as $item) {
+        $scandir = scandir($readOnlyDir, SCANDIR_SORT_NONE);
+        if ($scandir === false) {
+            return;
+        }
+
+        foreach ($scandir as $item) {
             if (in_array($item, ['.', '..'])) {
                 continue;
             }

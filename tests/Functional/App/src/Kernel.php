@@ -4,6 +4,7 @@ namespace App;
 
 use Bref\SymfonyBridge\BrefKernel;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
+use Symfony\Component\Config\ConfigCache;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -50,5 +51,17 @@ class Kernel extends BrefKernel
         $routes->import($confDir.'/{routes}/'.$this->environment.'/*'.self::CONFIG_EXTS, '/', 'glob');
         $routes->import($confDir.'/{routes}/*'.self::CONFIG_EXTS, '/', 'glob');
         $routes->import($confDir.'/{routes}'.self::CONFIG_EXTS, '/', 'glob');
+    }
+
+    /**
+     * This method is overloaded for the tests.
+     *
+     * It lets us detect whenever the compiled container is being rebuilt.
+     */
+    protected function dumpContainer(ConfigCache $cache, ContainerBuilder $container, string $class, string $baseClass)
+    {
+        echo "Symfony is compiling the container\n";
+
+        parent::dumpContainer($cache, $container, $class, $baseClass);
     }
 }

@@ -104,7 +104,7 @@ class FunctionalTest extends TestCase
     {
         $message = $command->getOutput() . PHP_EOL . $command->getErrorOutput();
         $this->assertTrue($command->isSuccessful(), $message);
-        $this->assertStringNotContainsStringIgnoringCase('Warning', $command->getErrorOutput(), $message);
-        $this->assertStringNotContainsStringIgnoringCase('Error', $command->getErrorOutput(), $message);
+        $this->assertStringNotContainsStringIgnoringCase('Warning', $message, $message);
+        $this->assertStringNotContainsStringIgnoringCase('Error', $message, $message);
     }
 }

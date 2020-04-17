@@ -93,7 +93,7 @@ class FunctionalTest extends TestCase
             $projectRoot . ':/var/task:ro',
             '--entrypoint',
             'php',
-            'bref/php-'.$phpVersion,
+            'bref/php-' . $phpVersion,
             // Run bin/console
             'tests/Functional/App/bin/console',
             '--version',

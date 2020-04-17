@@ -6,7 +6,7 @@ framework:
     # Enables session support. Note that the session will ONLY be started if you read or write from it.
     # Remove or comment this section to explicitly disable session support.
     session:
-        handler_id: null
+        storage_id: session.storage.mock_file
         cookie_secure: auto
         cookie_samesite: lax
 
@@ -14,3 +14,8 @@ framework:
     #fragments: true
     php_errors:
         log: true
+    cache: ~
+
+    router:
+        strict_requirements: null
+        utf8: true

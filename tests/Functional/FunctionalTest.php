@@ -78,7 +78,7 @@ class FunctionalTest extends TestCase
         $composerInstall->mustRun();
     }
 
-    private function runSymfonyConsole(): Process
+    private function runSymfonyConsole(string $command = 'app:ping'): Process
     {
         $projectRoot = dirname(__DIR__, 2);
         $phpVersion = getenv('PHP_VERSION');
@@ -96,7 +96,8 @@ class FunctionalTest extends TestCase
             'bref/php-' . $phpVersion,
             // Run bin/console
             'tests/Functional/App/bin/console',
-            '--version',
+            '--env=prod',
+            $command,
         ]);
         $dockerCommand->run();
 

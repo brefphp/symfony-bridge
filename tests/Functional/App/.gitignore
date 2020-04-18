@@ -1,5 +1,6 @@
 composer.lock
 symfony.lock
+tmp/
 
 ###> symfony/framework-bundle ###
 /.env.local

@@ -20,7 +20,7 @@ abstract class FunctionalTest extends TestCase
     {
         parent::setUp();
         // Make sure we start with an empty `/tmp` for each test
-        (new Filesystem())->remove(self::LOCAL_TMP_DIRECTORY);
+        (new Filesystem)->remove(self::LOCAL_TMP_DIRECTORY);
     }
 
     abstract public function test Symfony works(): void;

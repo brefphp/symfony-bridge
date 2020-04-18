@@ -27,6 +27,7 @@ class DeployedWithCacheTest extends FunctionalTest
         $this->assertStringNotContainsString('Symfony is compiling the container', $symfonyConsole->getOutput());
         $this->assertCompiledContainerExistsInTmp();
     }
+
     public function test that the Symfony system cache can be written to(): void
     {
         $symfonyConsole = $this->runSymfonyConsole('write-to-cache');

@@ -30,6 +30,7 @@ jobs:
 
       - name: Run tests
         env:
+          PHP_VERSION: ${{ matrix.php }}
           SYMFONY_REQUIRE: ${{ matrix.sf_version }}
         run: ./vendor/bin/phpunit
 
@@ -50,4 +51,6 @@ jobs:
         run: composer update --no-interaction --prefer-dist --optimize-autoloader --prefer-stable --prefer-lowest
 
       - name: Run tests
+        env:
+          PHP_VERSION: 7.3
         run: ./vendor/bin/phpunit -v --coverage-text

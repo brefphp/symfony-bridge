@@ -20,6 +20,7 @@ abstract class FunctionalTest extends TestCase
     {
         parent::setUp();
         // Make sure we start with an empty `/tmp` for each test
+        $this->removeTmpPermissions();
         $filesystem = new Filesystem;
         $filesystem->remove(self::LOCAL_TMP_DIRECTORY);
         $filesystem->mkdir(self::LOCAL_TMP_DIRECTORY);
@@ -108,5 +109,31 @@ abstract class FunctionalTest extends TestCase
     protected function assertCompiledContainerDoesNotExistInTmp(): void
     {
         $this->assertDirectoryNotExists(self::LOCAL_TMP_DIRECTORY . '/cache/prod');
+    }
+
+    /**
+     * When Symfony runs in Docker, it may run as root and create files in `/tmp`.
+     * On the host machine (in this process) sometimes we can't erase those files (e.g. in CI).
+     * Here we open up those permissions inside Docker, because I am really frustrated right now so why not.
+     */
+    private function removeTmpPermissions(): void
+    {
+        $phpVersion = getenv('PHP_VERSION');
+        $phpVersion = $phpVersion === false ? '74' : str_replace('.', '', $phpVersion);
+
+        $chmod = new Process([
+            'docker',
+            'run',
+            '--rm',
+            '-v',
+            self::LOCAL_TMP_DIRECTORY . ':/tmp',
+            '--entrypoint',
+            'chmod',
+            'bref/php-' . $phpVersion,
+            '-R',
+            '777',
+            '/tmp',
+        ]);
+        $chmod->mustRun();
     }
 }

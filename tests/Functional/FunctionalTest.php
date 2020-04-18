@@ -20,7 +20,9 @@ abstract class FunctionalTest extends TestCase
     {
         parent::setUp();
         // Make sure we start with an empty `/tmp` for each test
-        $this->removeTmpPermissions();
+        if (is_dir(self::LOCAL_TMP_DIRECTORY)) {
+            $this->removeTmpPermissions();
+        }
         $filesystem = new Filesystem;
         $filesystem->remove(self::LOCAL_TMP_DIRECTORY);
         $filesystem->mkdir(self::LOCAL_TMP_DIRECTORY);
@@ -127,12 +129,10 @@ abstract class FunctionalTest extends TestCase
             '--rm',
             '-v',
             self::LOCAL_TMP_DIRECTORY . ':/tmp',
-            '--entrypoint',
-            'chmod',
+            '--entrypoint=bash',
             'bref/php-' . $phpVersion,
-            '-R',
-            '777',
-            '/tmp',
+            '-c',
+            'chmod -R 777 /tmp/*',
         ]);
         $chmod->mustRun();
     }

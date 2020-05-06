@@ -19,8 +19,7 @@ You only need to one one small change To quickly setup Symfony to work with Bref
 
 namespace App;
 
-use App\Repository\Test\TestRepository;
-+ Bref\SymfonyBridge\BrefKernel;
++ use Bref\SymfonyBridge\BrefKernel;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\Config\Resource\FileResource;

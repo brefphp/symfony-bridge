@@ -12,7 +12,9 @@ composer req bref/symfony-bridge
 
 ## Usage
 
-You only need to one one small change To quickly setup Symfony to work with Bref.
+You only need to do two small change to quickly setup Symfony to work with Bref.
+
+First change your `src/Kernel.php` like so :
 
 ```diff
 // src/Kernel.php
@@ -31,6 +33,19 @@ use Symfony\Component\Routing\RouteCollectionBuilder;
 + class Kernel extends BrefKernel
 {
     // ...
+```
+
+Then make sure your `serverless.yaml` contains at least the following include/exclude rules
+
+```yaml
+# ...
+package:
+    exclude:
+        - var/**
+    include:
+        - var/cache/prod/**
+        - var/build/prod/**
+#...
 ```
 
 Now you are up and running.

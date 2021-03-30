@@ -25,6 +25,14 @@ abstract class BrefKernel extends Kernel
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function getBuildDir(): string
+    {
+        return $this->getProjectDir().'/var/build/'.$this->environment;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function getLogDir()

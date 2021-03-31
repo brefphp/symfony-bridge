@@ -13,6 +13,11 @@ abstract class BrefKernel extends Kernel
         return getenv('LAMBDA_TASK_ROOT') !== false;
     }
 
+    public function allowEmptyBuildDir()
+    {
+        return false;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -23,6 +28,29 @@ abstract class BrefKernel extends Kernel
         }
 
         return parent::getCacheDir();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getBuildDir(): string
+    {
+        $buildDir = $this->getProjectDir().'/var/build/'.$this->environment;
+
+        if ($this->isLambda() && !is_dir($buildDir)) {
+            if (!$this->allowEmptyBuildDir()) {
+                throw new \Exception(
+                    'You must warm and deploy the build directory as part of your Lambda package
+                    as this directory is readonly on Lambda.
+                    You can alternatively define the function allowEmptyBuildDir() in your Kernel class
+                    and return "true" if you still want to deploy without a warm build directory.
+                ');
+            }
+
+            return $this->getCacheDir();
+        }
+
+        return $buildDir;
     }
 
     /**

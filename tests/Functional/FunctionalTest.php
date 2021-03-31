@@ -132,7 +132,7 @@ abstract class FunctionalTest extends TestCase
             '--entrypoint=bash',
             'bref/php-' . $phpVersion,
             '-c',
-            'chmod -R 777 /tmp/*',
+            'chmod -R 777 /tmp',
         ]);
         $chmod->mustRun();
     }

@@ -24,7 +24,6 @@ class DeployedWithCacheTest extends FunctionalTest
     public function test Symfony does not recompile the container(): void
     {
         $symfonyConsole = $this->runHttpRequest();
-        var_dump($symfonyConsole->getOutput());
         $this->assertStringNotContainsString('Symfony is compiling the container', $symfonyConsole->getOutput());
         $this->assertCompiledContainerExistsInTmp();
     }

@@ -16,12 +16,12 @@ class DeployedWithoutCacheTest extends FunctionalTest
 
     public function test Symfony works(): void
     {
-        $this->assertCommandIsSuccessful($this->runSymfonyConsole());
+        $this->assertCommandIsSuccessful($this->runHttpRequest());
     }
 
     public function test Symfony compiles the container in tmp(): void
     {
-        $symfonyConsole = $this->runSymfonyConsole();
+        $symfonyConsole = $this->runHttpRequest();
         $this->assertStringContainsString('Symfony is compiling the container', $symfonyConsole->getOutput());
         $this->assertCompiledContainerExistsInTmp();
 

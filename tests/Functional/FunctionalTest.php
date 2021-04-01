@@ -29,6 +29,18 @@ abstract class FunctionalTest extends TestCase
         $filesystem->chmod(self::LOCAL_TMP_DIRECTORY, 0777);
     }
 
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        if (is_dir(self::LOCAL_TMP_DIRECTORY)) {
+            $this->removeTmpPermissions();
+        }
+        $filesystem = new Filesystem;
+        $filesystem->remove(self::LOCAL_TMP_DIRECTORY);
+        $filesystem->mkdir(self::LOCAL_TMP_DIRECTORY);
+        $filesystem->chmod(self::LOCAL_TMP_DIRECTORY, 0777);
+    }
+
     abstract public function test Symfony works(): void;
 
     protected function composerInstall(): void
@@ -89,6 +101,33 @@ abstract class FunctionalTest extends TestCase
             'tests/Functional/App/bin/console',
             '--env=prod',
             $command,
+        ]);
+        $dockerCommand->run();
+
+        return $dockerCommand;
+    }
+
+    protected function runHttpRequest(): Process
+    {
+        $projectRoot = dirname(__DIR__, 2);
+        $phpVersion = getenv('PHP_VERSION');
+        $phpVersion = $phpVersion === false ? '74' : str_replace('.', '', $phpVersion);
+
+        $dockerCommand = new Process([
+            'docker',
+            'run',
+            '--rm',
+            '-v',
+            // `:ro` means that the project is mounted as read-only
+            $projectRoot . ':/var/task:ro',
+            // Mount the `/tmp` directory to persist it between commands
+            '-v',
+            self::LOCAL_TMP_DIRECTORY . ':/tmp',
+            '--entrypoint',
+            'php',
+            'bref/php-' . $phpVersion,
+            // Run bin/console
+            'tests/Functional/App/public/index.php'
         ]);
         $dockerCommand->run();
 

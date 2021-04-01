@@ -18,12 +18,13 @@ class DeployedWithCacheTest extends FunctionalTest
 
     public function test Symfony works(): void
     {
-        $this->assertCommandIsSuccessful($this->runSymfonyConsole());
+        $this->assertCommandIsSuccessful($this->runHttpRequest());
     }
 
     public function test Symfony does not recompile the container(): void
     {
-        $symfonyConsole = $this->runSymfonyConsole();
+        $symfonyConsole = $this->runHttpRequest();
+        var_dump($symfonyConsole->getOutput());
         $this->assertStringNotContainsString('Symfony is compiling the container', $symfonyConsole->getOutput());
         $this->assertCompiledContainerExistsInTmp();
     }

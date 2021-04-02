@@ -20,25 +20,15 @@ abstract class FunctionalTest extends TestCase
     {
         parent::setUp();
         // Make sure we start with an empty `/tmp` for each test
-        if (is_dir(self::LOCAL_TMP_DIRECTORY)) {
-            $this->removeTmpPermissions();
-        }
-        $filesystem = new Filesystem;
-        $filesystem->remove(self::LOCAL_TMP_DIRECTORY);
-        $filesystem->mkdir(self::LOCAL_TMP_DIRECTORY);
-        $filesystem->chmod(self::LOCAL_TMP_DIRECTORY, 0777);
+        $this->destroyCache();
     }
 
     protected function tearDown(): void
     {
         parent::tearDown();
-        if (is_dir(self::LOCAL_TMP_DIRECTORY)) {
-            $this->removeTmpPermissions();
-        }
-        $filesystem = new Filesystem;
-        $filesystem->remove(self::LOCAL_TMP_DIRECTORY);
-        $filesystem->mkdir(self::LOCAL_TMP_DIRECTORY);
-        $filesystem->chmod(self::LOCAL_TMP_DIRECTORY, 0777);
+        // Make sure the cache is emptied after each test to allow running tests multiple times locally
+        // without permissions issues due to the execution in Docker
+        $this->destroyCache();
     }
 
     abstract public function test Symfony works(): void;
@@ -80,58 +70,16 @@ abstract class FunctionalTest extends TestCase
 
     protected function runSymfonyConsole(string $command = 'app:ping'): Process
     {
-        $projectRoot = dirname(__DIR__, 2);
-        $phpVersion = getenv('PHP_VERSION');
-        $phpVersion = $phpVersion === false ? '74' : str_replace('.', '', $phpVersion);
-
-        $dockerCommand = new Process([
-            'docker',
-            'run',
-            '--rm',
-            '-v',
-            // `:ro` means that the project is mounted as read-only
-            $projectRoot . ':/var/task:ro',
-            // Mount the `/tmp` directory to persist it between commands
-            '-v',
-            self::LOCAL_TMP_DIRECTORY . ':/tmp',
-            '--entrypoint',
-            'php',
-            'bref/php-' . $phpVersion,
-            // Run bin/console
+        return $this->runInDockerProcess([
             'tests/Functional/App/bin/console',
             '--env=prod',
             $command,
         ]);
-        $dockerCommand->run();
-
-        return $dockerCommand;
     }
 
     protected function runHttpRequest(): Process
     {
-        $projectRoot = dirname(__DIR__, 2);
-        $phpVersion = getenv('PHP_VERSION');
-        $phpVersion = $phpVersion === false ? '74' : str_replace('.', '', $phpVersion);
-
-        $dockerCommand = new Process([
-            'docker',
-            'run',
-            '--rm',
-            '-v',
-            // `:ro` means that the project is mounted as read-only
-            $projectRoot . ':/var/task:ro',
-            // Mount the `/tmp` directory to persist it between commands
-            '-v',
-            self::LOCAL_TMP_DIRECTORY . ':/tmp',
-            '--entrypoint',
-            'php',
-            'bref/php-' . $phpVersion,
-            // Run bin/console
-            'tests/Functional/App/public/index.php'
-        ]);
-        $dockerCommand->run();
-
-        return $dockerCommand;
+        return $this->runInDockerProcess(['tests/Functional/App/public/index.php']);
     }
 
     protected function assertCommandIsSuccessful(Process $command): void
@@ -174,5 +122,45 @@ abstract class FunctionalTest extends TestCase
             'chmod -R 777 /tmp',
         ]);
         $chmod->mustRun();
+    }
+
+    private function runInDockerProcess(array $command): Process
+    {
+        $projectRoot = dirname(__DIR__, 2);
+        $phpVersion = getenv('PHP_VERSION');
+        $phpVersion = $phpVersion === false ? '74' : str_replace('.', '', $phpVersion);
+
+        $baseCommand = [
+            'docker',
+            'run',
+            '--rm',
+            '-v',
+            // `:ro` means that the project is mounted as read-only
+            $projectRoot . ':/var/task:ro',
+            // Mount the `/tmp` directory to persist it between commands
+            '-v',
+            self::LOCAL_TMP_DIRECTORY . ':/tmp',
+            '--entrypoint',
+            'php',
+            'bref/php-' . $phpVersion,
+        ];
+
+        array_push($baseCommand, ...$command);
+
+        $dockerCommand = new Process($baseCommand);
+        $dockerCommand->run();
+
+        return $dockerCommand;
+    }
+
+    private function destroyCache(): void
+    {
+        if (is_dir(self::LOCAL_TMP_DIRECTORY)) {
+            $this->removeTmpPermissions();
+        }
+        $filesystem = new Filesystem;
+        $filesystem->remove(self::LOCAL_TMP_DIRECTORY);
+        $filesystem->mkdir(self::LOCAL_TMP_DIRECTORY);
+        $filesystem->chmod(self::LOCAL_TMP_DIRECTORY, 0777);
     }
 }

@@ -68,7 +68,7 @@ abstract class FunctionalTest extends TestCase
         $composerInstall->mustRun();
     }
 
-    protected function runSymfonyConsole(string $command = 'app:ping'): Process
+    protected function runSymfonyConsole(string $command): Process
     {
         return $this->runInDockerProcess([
             'tests/Functional/App/bin/console',
@@ -79,7 +79,7 @@ abstract class FunctionalTest extends TestCase
 
     protected function runHttpRequest(): Process
     {
-        return $this->runInDockerProcess(['tests/Functional/App/public/index.php']);
+        return $this->runInDockerProcess(['tests/Functional/App/public/test.php']);
     }
 
     protected function assertCommandIsSuccessful(Process $command): void

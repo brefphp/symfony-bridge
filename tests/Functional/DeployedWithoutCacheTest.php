@@ -26,7 +26,7 @@ class DeployedWithoutCacheTest extends FunctionalTest
         $this->assertCompiledContainerExistsInTmp();
 
         // We check that the container is not recompiled again
-        $symfonyConsole = $this->runSymfonyConsole();
+        $symfonyConsole = $this->runHttpRequest();
         $this->assertStringNotContainsString('Symfony is compiling the container', $symfonyConsole->getOutput());
     }
 

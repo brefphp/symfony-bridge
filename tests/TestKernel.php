@@ -12,7 +12,7 @@ class TestKernel extends BrefKernel
         parent::__construct('prod', false);
     }
 
-    public function registerBundles()
+    public function registerBundles(): array
     {
         return [];
     }

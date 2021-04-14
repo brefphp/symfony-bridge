@@ -1,7 +1,7 @@
 This package configures Symfony to run on AWS Lambda using [Bref](https://bref.sh/).
 
 [![Build Status](https://github.com/brefphp/symfony-bridge/workflows/Tests/badge.svg)](https://github.com/brefphp/symfony-bridge/actions)
-[![Latest Version](https://img.shields.io/github/release/bref/symfony-bridge.svg?style=flat-square)](https://packagist.org/packages/bref/symfony-bridge)
+[![Latest Version](https://img.shields.io/packagist/v/bref/symfony-bridge?style=flat-square)](https://packagist.org/packages/bref/symfony-bridge)
 [![Total Downloads](https://img.shields.io/packagist/dt/bref/symfony-bridge.svg?style=flat-square)](https://packagist.org/packages/bref/symfony-bridge)
 
 ## Installation
@@ -12,7 +12,7 @@ composer req bref/symfony-bridge
 
 ## Usage
 
-You only need to one one small change To quickly setup Symfony to work with Bref.
+You only need to do one small change to quickly setup Symfony to work with Bref.
 
 ```diff
 // src/Kernel.php
@@ -77,7 +77,7 @@ framework:
                 adapter: cache.adapter.filesystem
 ```
 
-If you dont write to such cache pool you can optimize your setup by not copy the
+If you don't write to such cache pool you can optimize your setup by not copy the
 `var/cache/pools` directory. The change below will make sure to symlink the `pools`
 directory.
 

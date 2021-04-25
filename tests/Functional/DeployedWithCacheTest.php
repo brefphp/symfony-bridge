@@ -28,6 +28,13 @@ class DeployedWithCacheTest extends FunctionalTest
         $this->assertCompiledContainerExistsInTmp();
     }
 
+    public function test Symfony does not recompile the container in console(): void
+    {
+        $symfonyConsole = $this->runSymfonyConsole('app:ping');
+        $this->assertStringNotContainsString('Symfony is compiling the container', $symfonyConsole->getOutput());
+        $this->assertCompiledContainerExistsInTmp();
+    }
+
     public function test that the Symfony system cache can be written to(): void
     {
         $symfonyConsole = $this->runSymfonyConsole('write-to-cache');

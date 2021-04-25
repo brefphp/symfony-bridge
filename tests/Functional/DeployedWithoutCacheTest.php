@@ -30,6 +30,17 @@ class DeployedWithoutCacheTest extends FunctionalTest
         $this->assertStringNotContainsString('Symfony is compiling the container', $symfonyConsole->getOutput());
     }
 
+    public function test Symfony compiles the container in tmp in console(): void
+    {
+        $symfonyConsole = $this->runSymfonyConsole('app:ping');
+        $this->assertStringContainsString('Symfony is compiling the container', $symfonyConsole->getOutput());
+        $this->assertCompiledContainerExistsInTmp();
+
+        // We check that the container is not recompiled again
+        $symfonyConsole = $this->runSymfonyConsole('app:ping');
+        $this->assertStringNotContainsString('Symfony is compiling the container', $symfonyConsole->getOutput());
+    }
+
     public function test that the Symfony system cache can be written to(): void
     {
         $symfonyConsole = $this->runSymfonyConsole('write-to-cache');

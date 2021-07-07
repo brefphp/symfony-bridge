@@ -62,6 +62,7 @@ abstract class BrefKernel extends Kernel
     public function boot()
     {
         $this->prepareCacheDir(parent::getCacheDir(), $this->getCacheDir());
+        $this->ensureLogDir($this->getLogDir());
 
         parent::boot();
     }
@@ -120,6 +121,24 @@ abstract class BrefKernel extends Kernel
             'Symfony cache directory prepared in %s ms.',
             number_format((microtime(true) - $startTime) * 1000, 2)
         ));
+    }
+
+    /**
+     * Even though applications should never write into it on Lambda, there are parts of Symfony
+     * (like "about" CLI command) that expect the log dir exists, so we have to make sure of it.
+     *
+     * @see https://github.com/brefphp/symfony-bridge/issues/42
+     */
+    protected function ensureLogDir(string $writeLogDir): void
+    {
+        if (! $this->isLambda() || is_dir($writeLogDir)) {
+            return;
+        }
+
+        $filesystem = new Filesystem;
+        $filesystem->mkdir($writeLogDir);
+
+        $this->logToStderr('Symfony log directory created.');
     }
 
     /**

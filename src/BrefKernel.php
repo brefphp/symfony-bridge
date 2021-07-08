@@ -129,7 +129,7 @@ abstract class BrefKernel extends Kernel
      *
      * @see https://github.com/brefphp/symfony-bridge/issues/42
      */
-    protected function ensureLogDir(string $writeLogDir): void
+    private function ensureLogDir(string $writeLogDir): void
     {
         if (! $this->isLambda() || is_dir($writeLogDir)) {
             return;
@@ -137,8 +137,6 @@ abstract class BrefKernel extends Kernel
 
         $filesystem = new Filesystem;
         $filesystem->mkdir($writeLogDir);
-
-        $this->logToStderr('Symfony log directory created.');
     }
 
     /**

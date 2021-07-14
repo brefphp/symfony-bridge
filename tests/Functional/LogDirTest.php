@@ -26,7 +26,7 @@ class LogDirTest extends FunctionalTest
         $this->assertCommandIsSuccessful($this->runHttpRequest());
     }
 
-    public function test log dir created in tmp on http request(): void
+    public function test log dir is created in tmp on http request(): void
     {
         $this->assertDirectoryNotExists(self::LOCAL_TMP_DIRECTORY . '/log');
 
@@ -34,7 +34,7 @@ class LogDirTest extends FunctionalTest
         $this->assertDirectoryExists(self::LOCAL_TMP_DIRECTORY . '/log');
     }
 
-    public function test log dir created in tmp on console command(): void
+    public function test log dir is created in tmp on console command(): void
     {
         $this->assertDirectoryNotExists(self::LOCAL_TMP_DIRECTORY . '/log');
 

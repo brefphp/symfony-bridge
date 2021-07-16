@@ -14,7 +14,7 @@ abstract class FunctionalTest extends TestCase
      * simulate a persistent `/tmp` directory, just like inside AWS Lambda.
      * This will also let us check the content of that directory.
      */
-    private const LOCAL_TMP_DIRECTORY = __DIR__ . '/App/tmp';
+    protected const LOCAL_TMP_DIRECTORY = __DIR__ . '/App/tmp';
 
     public function setUp(): void
     {

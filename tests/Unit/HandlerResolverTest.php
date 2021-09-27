@@ -1,0 +1,54 @@
+<?php declare(strict_types=1);
+
+namespace Bref\SymfonyBridge\Test\Unit;
+
+use Bref\Bref;
+use Bref\SymfonyBridge\HandlerResolver;
+use Bref\SymfonyBridge\Http\KernelAdapter;
+use Bref\SymfonyBridge\Test\Fixtures\MyService;
+use Bref\SymfonyBridge\Test\Fixtures\TestKernel;
+use Closure;
+use PHPUnit\Framework\TestCase;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class HandlerResolverTest extends TestCase
+{
+    public function setUp(): void
+    {
+        $_SERVER['SYMFONY_KERNEL_CLASS'] = TestKernel::class;
+    }
+
+    public function tearDown(): void
+    {
+        unset($_SERVER['SYMFONY_KERNEL_CLASS']);
+    }
+
+    public function test Bref uses our handler resolver()
+    {
+        self::assertInstanceOf(HandlerResolver::class, Bref::getContainer());
+    }
+
+    public function test files are resolved()
+    {
+        $resolver = new HandlerResolver;
+        self::assertTrue($resolver->has('tests/Fixtures/fake-handler.php'));
+        $fileHandler = $resolver->get('tests/Fixtures/fake-handler.php');
+        self::assertInstanceOf(Closure::class, $fileHandler);
+        self::assertEquals('hello world', $fileHandler());
+    }
+
+    public function test Symfony services can be used as Lambda handlers()
+    {
+        $resolver = new HandlerResolver;
+        self::assertInstanceOf(MyService::class, $resolver->get(MyService::class));
+        self::assertTrue($resolver->has(MyService::class));
+    }
+
+    public function test the Symfony kernel can be used as a HTTP handler()
+    {
+        $resolver = new HandlerResolver;
+        $handler = $resolver->get(TestKernel::class);
+        self::assertInstanceOf(RequestHandlerInterface::class, $handler);
+        self::assertInstanceOf(KernelAdapter::class, $handler);
+    }
+}

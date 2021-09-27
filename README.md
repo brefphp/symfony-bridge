@@ -95,3 +95,50 @@ class Kernel extends BrefKernel
 +    }
 }
 ```
+
+## Handling requests in a kept-alive process without FPM
+
+> Note: this is an advanced topic. Don't bother with this unless you know what you are doing.
+
+To handle HTTP requests via the Symfony Kernel, without using PHP-FPM, by keeping the process alive:
+
+```diff
+# serverless.yml
+
+functions:
+    app:
+-        handler: public/index.php
++        handler: App\Kernel
+        layers:
+            # Switch from PHP-FPM to the "function" runtime:
+-            - ${bref:layer.php-80-fpm}
++            - ${bref:layer.php-80}
+        environment:
+            # The Symfony process will restart every 100 requests
+            BREF_LOOP_MAX: 100
+```
+
+## Class handlers
+
+To handle other events (e.g. [SQS messages with Symfony Messenger](https://github.com/brefphp/symfony-messenger)) via a class name:
+
+```diff
+# serverless.yml
+
+functions:
+    sqsHandler:
+-        handler: bin/consumer.php
++        handler: Bref\Symfony\Messenger\Service\Sqs\SqsConsumer
+        layers:
+            - ${bref:layer.php-80}
+```
+
+If your Symfony kernel is not named `App\Kernel`, you can configure that in a `SYMFONY_KERNEL_CLASS` environment variable:
+
+```diff
+# serverless.yml
+provider:
+    ...
+    environment:
+        SYMFONY_KERNEL_CLASS: MyNamespace\App\Kernel
+```

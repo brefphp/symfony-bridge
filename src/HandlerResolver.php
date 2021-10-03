@@ -8,6 +8,12 @@ use Exception;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
+/**
+ * This class resolves handlers.
+ *
+ * For example, if we configure `handler: xyz` in serverless.yml, then Bref
+ * will call this class to resolve `xyz` into the real Lambda handler.
+ */
 class HandlerResolver implements ContainerInterface
 {
     private ?ContainerInterface $symfonyContainer;
@@ -15,6 +21,7 @@ class HandlerResolver implements ContainerInterface
 
     public function __construct()
     {
+        // Bref's default handler resolver
         $this->fileLocator = new FileHandlerLocator;
         $this->symfonyContainer = null;
     }
@@ -32,6 +39,7 @@ class HandlerResolver implements ContainerInterface
         // If not, we try to get the handler from the Symfony container
         $handler = $this->symfonyContainer()->get($id);
 
+        // If the kernel was configured as a handler, then we wrap it to make it a valid HTTP handler for Lambda
         if ($handler instanceof HttpKernelInterface) {
             $handler = new KernelAdapter($handler);
         }
@@ -47,8 +55,12 @@ class HandlerResolver implements ContainerInterface
         return $this->fileLocator->has($id) || $this->symfonyContainer()->has($id);
     }
 
+    /**
+     * Create and return the Symfony container.
+     */
     private function symfonyContainer(): ContainerInterface
     {
+        // Only create it once
         if (! $this->symfonyContainer) {
             $kernelClass = $_SERVER['SYMFONY_KERNEL_CLASS'] ?? 'App\Kernel';
             if (! class_exists($kernelClass)) {
@@ -60,9 +72,12 @@ class HandlerResolver implements ContainerInterface
                 );
             }
 
+            // Sane defaults for running on AWS Lambda: prod and no debug
+            // Can be overridden via the environment variables of course
             $env = $_SERVER['APP_ENV'] ?? 'prod';
             $debug = (bool) ($_SERVER['APP_DEBUG'] ?? false);
 
+            // This is where the Symfony Kernel is created and booted
             $kernel = new $kernelClass($env, $debug);
             $kernel->boot();
             $this->symfonyContainer = $kernel->getContainer();

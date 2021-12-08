@@ -3,6 +3,8 @@
 namespace Bref\SymfonyBridge;
 
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\Kernel;
 
@@ -46,7 +48,7 @@ abstract class BrefKernel extends Kernel
      *
      * @see https://github.com/brefphp/symfony-bridge/pull/37
      */
-    public function handle($request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
+    public function handle(Request $request, int $type = HttpKernelInterface::MASTER_REQUEST, bool $catch = true): Response
     {
         $this->prepareCacheDir(parent::getCacheDir(), $this->getCacheDir());
 

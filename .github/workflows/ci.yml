@@ -12,6 +12,12 @@ jobs:
       matrix:
         php: ['7.3', '7.4', '8.0', '8.1']
         sf_version: ['4.4.*', '5.0.*', '5.2.*', '5.4.*', '6.0.*']
+        exclude:
+          - php: 7.3
+            sf_version: 6.0.*
+            
+          - php: 7.4
+            sf_version: 6.0.*
 
     steps:
       - name: Set up PHP

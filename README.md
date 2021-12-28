@@ -128,17 +128,33 @@ To handle other events (e.g. [SQS messages with Symfony Messenger](https://githu
 functions:
     sqsHandler:
 -        handler: bin/consumer.php
-+        handler: Bref\Symfony\Messenger\Service\Sqs\SqsConsumer
++        handler: App\Service\MyService
         layers:
             - ${bref:layer.php-80}
 ```
 
-If your Symfony kernel is not named `App\Kernel`, you can configure that in a `SYMFONY_KERNEL_CLASS` environment variable:
+The service will be retrieved from the Symfony Kernel returned by `public/index.php`.
+
+### Custom bootstrap file
+
+If you do not have a `public/index.php` file, you can create a file that returns the kernel (or any PSR-11 container):
+
+```php
+<?php
+
+require_once dirname(__DIR__).'/vendor/autoload_runtime.php';
+
+return function (array $context) {
+    return new App\Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
+};
+```
+
+And configure it in `serverless.yml`:
 
 ```diff
 # serverless.yml
-provider:
-    ...
-    environment:
-        SYMFONY_KERNEL_CLASS: MyNamespace\App\Kernel
+functions:
+    sqsHandler:
+-        handler: bin/consumer.php
++        handler: kernel.php:App\Service\MyService
 ```

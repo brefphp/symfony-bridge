@@ -7,6 +7,7 @@ use Bref\SymfonyBridge\Http\KernelAdapter;
 use Exception;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
  * This class resolves handlers.
@@ -31,13 +32,22 @@ class HandlerResolver implements ContainerInterface
      */
     public function get($id)
     {
+        $isComposed = strpos($id, ':') !== false;
+
         // By default we check if the handler is a file name (classic Bref behavior)
-        if ($this->fileLocator->has($id)) {
+        if (!$isComposed && $this->fileLocator->has($id)) {
             return $this->fileLocator->get($id);
         }
 
+        $service = $id;
+
+        $bootstrapFile = null;
+        if ($isComposed) {
+            [$bootstrapFile, $service] = explode(':', $id, 2);
+        }
+
         // If not, we try to get the handler from the Symfony container
-        $handler = $this->symfonyContainer()->get($id);
+        $handler = $this->symfonyContainer($bootstrapFile)->get($service);
 
         // If the kernel was configured as a handler, then we wrap it to make it a valid HTTP handler for Lambda
         if ($handler instanceof HttpKernelInterface) {
@@ -58,29 +68,34 @@ class HandlerResolver implements ContainerInterface
     /**
      * Create and return the Symfony container.
      */
-    private function symfonyContainer(): ContainerInterface
+    private function symfonyContainer(string $bootstrapFile = null): ContainerInterface
     {
         // Only create it once
         if (! $this->symfonyContainer) {
-            $kernelClass = $_SERVER['SYMFONY_KERNEL_CLASS'] ?? 'App\Kernel';
-            if (! class_exists($kernelClass)) {
+            $bootstrapFile = $bootstrapFile ?: 'public/index.php';
+
+            if (! file_exists($bootstrapFile)) {
                 throw new Exception(
-                    <<<MESSAGE
-                    Cannot find class '$kernelClass': the Bref-Symfony bridge needs to instantiate the Symfony kernel.
-                    If your Symfony kernel has a class name that is not '$kernelClass', then set your kernel class name in the 'SYMFONY_KERNEL_CLASS' environment variable. Bref will use it to create the Symfony kernel.
-                    MESSAGE
+                    "Cannot find file '$bootstrapFile': the Bref-Symfony bridge tried to require that file to get the Symfony kernel."
                 );
             }
 
-            // Sane defaults for running on AWS Lambda: prod and no debug
-            // Can be overridden via the environment variables of course
-            $env = $_SERVER['APP_ENV'] ?? 'prod';
-            $debug = (bool) ($_SERVER['APP_DEBUG'] ?? false);
+            $container = require $bootstrapFile;
 
-            // This is where the Symfony Kernel is created and booted
-            $kernel = new $kernelClass($env, $debug);
-            $kernel->boot();
-            $this->symfonyContainer = $kernel->getContainer();
+            if ($container instanceof KernelInterface) {
+                $container->boot();
+                $container = $container->getContainer();
+            }
+
+            if (! $container instanceof ContainerInterface) {
+                throw new Exception(sprintf(
+                    "The closure returned by '%s' must return either a Symfony Kernel or a PSR-11 container. Instead it returned '%s'",
+                    $bootstrapFile,
+                    is_object($container) ? get_class($container) : gettype($container),
+                ));
+            }
+
+            $this->symfonyContainer = $container;
         }
 
         return $this->symfonyContainer;

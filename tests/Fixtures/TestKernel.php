@@ -31,4 +31,8 @@ class TestKernel extends BrefKernel
     {
         $c->services()->set(MyService::class)->public();
     }
+
+    protected function configureRoutes(): void
+    {
+    }
 }

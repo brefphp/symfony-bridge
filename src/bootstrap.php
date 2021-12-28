@@ -9,4 +9,6 @@ use Bref\SymfonyBridge\HandlerResolver;
  * This is what Bref will use to turn handler names (strings defined in serverless.yml/AWS Lambda)
  * into classes that can handle the Lambda events.
  */
-Bref::setContainer(static fn () => new HandlerResolver);
+if (class_exists(Bref::class)) {
+    Bref::setContainer(static fn() => new HandlerResolver);
+}

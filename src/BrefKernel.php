@@ -14,9 +14,6 @@ abstract class BrefKernel extends Kernel
         return getenv('LAMBDA_TASK_ROOT') !== false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getCacheDir(): string
     {
         if ($this->isLambda()) {
@@ -26,9 +23,6 @@ abstract class BrefKernel extends Kernel
         return parent::getCacheDir();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getLogDir(): string
     {
         if ($this->isLambda()) {

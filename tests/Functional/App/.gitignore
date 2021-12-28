@@ -1,6 +1,7 @@
 composer.lock
 symfony.lock
 tmp/
+config/preload.php
 
 ###> symfony/framework-bundle ###
 /.env.local

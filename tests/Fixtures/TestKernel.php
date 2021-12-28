@@ -5,8 +5,8 @@ namespace Bref\SymfonyBridge\Test\Fixtures;
 use Bref\SymfonyBridge\BrefKernel;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 class TestKernel extends BrefKernel
 {
@@ -24,12 +24,11 @@ class TestKernel extends BrefKernel
         ];
     }
 
-    protected function configureContainer(ContainerConfigurator $c): void
+    /**
+     * @param ContainerConfigurator|ContainerBuilder $c
+     */
+    protected function configureContainer($c): void
     {
         $c->services()->set(MyService::class)->public();
-    }
-
-    protected function configureRoutes(RoutingConfigurator $routes): void
-    {
     }
 }

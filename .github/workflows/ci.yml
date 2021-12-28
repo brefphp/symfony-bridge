@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         php: ['7.4', '8.0', '8.1']
-        sf_version: ['4.4.*', '5.0.*', '5.2.*', '5.4.*', '6.0.*']
+        sf_version: ['5.2.*', '5.4.*', '6.0.*']
         exclude:
           - php: 7.4
             sf_version: 6.0.*

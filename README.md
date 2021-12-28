@@ -135,6 +135,8 @@ functions:
 
 The service will be retrieved from the Symfony Kernel returned by `public/index.php`.
 
+> Note: the service must be configured as `public: true` in the Symfony configuration.
+
 ### Custom bootstrap file
 
 If you do not have a `public/index.php` file, you can create a file that returns the kernel (or any PSR-11 container):

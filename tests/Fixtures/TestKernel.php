@@ -6,7 +6,7 @@ use Bref\SymfonyBridge\BrefKernel;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\DependencyInjection\Definition;
 
 class TestKernel extends BrefKernel
 {
@@ -25,11 +25,13 @@ class TestKernel extends BrefKernel
     }
 
     /**
-     * @param ContainerConfigurator|ContainerBuilder $c
+     * @param ContainerBuilder $c
      */
     protected function configureContainer($c): void
     {
-        $c->services()->set(MyService::class)->public();
+        $definition = new Definition(MyService::class);
+        $definition->setPublic(true);
+        $c->setDefinition(MyService::class, $definition);
     }
 
     protected function configureRoutes(): void

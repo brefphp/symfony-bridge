@@ -13,14 +13,17 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class HandlerResolverTest extends TestCase
 {
+    private string $cwd;
+
     public function setUp(): void
     {
-        $_SERVER['SYMFONY_KERNEL_CLASS'] = TestKernel::class;
+        $this->cwd = getcwd();
+        chdir(__DIR__);
     }
 
     public function tearDown(): void
     {
-        unset($_SERVER['SYMFONY_KERNEL_CLASS']);
+        chdir($this->cwd);
     }
 
     public function test Bref uses our handler resolver()
@@ -31,8 +34,8 @@ class HandlerResolverTest extends TestCase
     public function test files are resolved()
     {
         $resolver = new HandlerResolver;
-        self::assertTrue($resolver->has('tests/Fixtures/fake-handler.php'));
-        $fileHandler = $resolver->get('tests/Fixtures/fake-handler.php');
+        self::assertTrue($resolver->has('fake-handler.php'));
+        $fileHandler = $resolver->get('fake-handler.php');
         self::assertInstanceOf(Closure::class, $fileHandler);
         self::assertEquals('hello world', $fileHandler());
     }

@@ -4,6 +4,7 @@ namespace Bref\SymfonyBridge;
 
 use Bref\Runtime\FileHandlerLocator;
 use Bref\SymfonyBridge\Http\KernelAdapter;
+use Closure;
 use Exception;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -35,7 +36,7 @@ class HandlerResolver implements ContainerInterface
         $isComposed = strpos($id, ':') !== false;
 
         // By default we check if the handler is a file name (classic Bref behavior)
-        if (!$isComposed && $this->fileLocator->has($id)) {
+        if (! $isComposed && $this->fileLocator->has($id)) {
             return $this->fileLocator->get($id);
         }
 
@@ -62,13 +63,28 @@ class HandlerResolver implements ContainerInterface
      */
     public function has($id): bool
     {
-        return $this->fileLocator->has($id) || $this->symfonyContainer()->has($id);
+        $isComposed = strpos($id, ':') !== false;
+
+        // By default we check if the handler is a file name (classic Bref behavior)
+        if (! $isComposed && $this->fileLocator->has($id)) {
+            return true;
+        }
+
+        $service = $id;
+
+        $bootstrapFile = null;
+        if ($isComposed) {
+            [$bootstrapFile, $service] = explode(':', $id, 2);
+        }
+
+        // If not, we try to get the handler from the Symfony container
+        return $this->symfonyContainer($bootstrapFile)->has($service);
     }
 
     /**
      * Create and return the Symfony container.
      */
-    private function symfonyContainer(string $bootstrapFile = null): ContainerInterface
+    private function symfonyContainer(?string $bootstrapFile = null): ContainerInterface
     {
         // Only create it once
         if (! $this->symfonyContainer) {
@@ -76,11 +92,21 @@ class HandlerResolver implements ContainerInterface
 
             if (! file_exists($bootstrapFile)) {
                 throw new Exception(
-                    "Cannot find file '$bootstrapFile': the Bref-Symfony bridge tried to require that file to get the Symfony kernel."
+                    "Cannot find file '$bootstrapFile': the Bref-Symfony bridge tried to require that file to get the Symfony kernel. If your application does not have that file, follow the Bref-Symfony documentation to create and configure a file that returns the Symfony Kernel."
                 );
             }
 
-            $container = require $bootstrapFile;
+            $closure = require $bootstrapFile;
+
+            if (! $closure instanceof Closure) {
+                throw new Exception(sprintf(
+                    "The '%s' file must return an anonymous function (that returns the Symfony Kernel). Instead it returned '%s'. Either edit the file to return an anynomous function, or create a separate file (follow the online documentation to do so).",
+                    $bootstrapFile,
+                    is_object($closure) ? get_class($closure) : gettype($closure),
+                ));
+            }
+
+            $container = $closure();
 
             if ($container instanceof KernelInterface) {
                 $container->boot();

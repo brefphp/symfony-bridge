@@ -10,5 +10,5 @@ use Bref\SymfonyBridge\HandlerResolver;
  * into classes that can handle the Lambda events.
  */
 if (class_exists(Bref::class)) {
-    Bref::setContainer(static fn() => new HandlerResolver);
+    Bref::setContainer(static fn () => new HandlerResolver);
 }

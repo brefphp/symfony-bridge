@@ -106,7 +106,9 @@ class HandlerResolver implements ContainerInterface
                 ));
             }
 
-            $container = $closure();
+            $context = $_SERVER;
+
+            $container = $closure($context);
 
             if ($container instanceof KernelInterface) {
                 $container->boot();

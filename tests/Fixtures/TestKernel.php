@@ -39,7 +39,7 @@ class TestKernel extends BrefKernel
         }
     }
 
-    protected function configureRoutes(): void
+    protected function configureRoutes($routes): void
     {
     }
 }

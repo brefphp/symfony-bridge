@@ -36,7 +36,7 @@ abstract class FunctionalTest extends TestCase
     protected function composerInstall(): void
     {
         $symfonyRequirement = getenv('SYMFONY_REQUIRE');
-        $symfonyRequirement = $symfonyRequirement === false ? '4.4.*' : $symfonyRequirement;
+        $symfonyRequirement = $symfonyRequirement === false ? '6.0.*' : $symfonyRequirement;
 
         $composerInstall = new Process([
             'composer',
@@ -128,7 +128,7 @@ abstract class FunctionalTest extends TestCase
     {
         $projectRoot = dirname(__DIR__, 2);
         $phpVersion = getenv('PHP_VERSION');
-        $phpVersion = $phpVersion === false ? '74' : str_replace('.', '', $phpVersion);
+        $phpVersion = $phpVersion === false ? '81' : str_replace('.', '', $phpVersion);
 
         $baseCommand = [
             'docker',

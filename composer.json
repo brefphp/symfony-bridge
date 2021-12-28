@@ -24,19 +24,23 @@
     "require": {
         "php": ">=7.4",
         "bref/bref": "^1.2",
-        "symfony/filesystem": "^4.4|^5.0",
-        "symfony/http-kernel": "^4.4|^5.0",
+        "symfony/filesystem": "^4.4|^5.0|^6.0",
+        "symfony/http-kernel": "^4.4|^5.0|^6.0",
         "symfony/psr-http-message-bridge": "^2.1"
     },
     "require-dev": {
         "mnapoli/hard-mode": "^0.3.0",
         "phpunit/phpunit": "^8.0",
-        "symfony/config": "^4.4|^5.0",
-        "symfony/dependency-injection": "^4.4|^5.0",
-        "symfony/framework-bundle": "^4.4|^5.0",
-        "symfony/process": "^4.4|^5.0"
+        "symfony/config": "^4.4|^5.0|^6.0",
+        "symfony/dependency-injection": "^4.4|^5.0|^6.0",
+        "symfony/framework-bundle": "^4.4|^5.0|^6.0",
+        "symfony/process": "^4.4|^5.0|^6.0"
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "symfony/runtime": false
+        }
     }
 }

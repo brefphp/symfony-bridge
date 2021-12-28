@@ -27,8 +27,9 @@ class TestKernel extends BrefKernel
 
     /**
      * @param ContainerBuilder|ContainerConfigurator $c
+     * @param mixed $loader
      */
-    protected function configureContainer($c): void
+    protected function configureContainer($c, $loader = null): void
     {
         if ($c instanceof  ContainerBuilder) {
             $definition = new Definition(MyService::class);
@@ -39,6 +40,11 @@ class TestKernel extends BrefKernel
         }
     }
 
+    /**
+     * This method is needed only for supporting lower Symfony versions
+     *
+     * @param mixed $routes
+     */
     protected function configureRoutes($routes): void
     {
     }

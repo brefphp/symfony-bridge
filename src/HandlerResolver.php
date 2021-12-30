@@ -98,10 +98,11 @@ class HandlerResolver implements ContainerInterface
 
             $app = require $bootstrapFile;
 
-            if (!is_object($app)) {
+            if (! is_object($app)) {
                 throw new Exception(sprintf(
                     "The '%s' file must return an anonymous function (that returns the Symfony Kernel). Instead it returned '%s'. Either edit the file to return an anonymous function, or create a separate file (follow the online documentation to do so).",
                     $bootstrapFile,
+                    // @phpstan-ignore-next-line
                     is_object($app) ? get_class($app) : gettype($app),
                 ));
             }

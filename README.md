@@ -1,4 +1,4 @@
-Run Symfony on AWS Lambda using the [Bref](https://bref.sh/) runtime.
+[Bref](https://bref.sh/) runtime to run Symfony on AWS Lambda.
 
 [![Build Status](https://github.com/brefphp/symfony-bridge/workflows/Tests/badge.svg)](https://github.com/brefphp/symfony-bridge/actions)
 [![Latest Version](https://img.shields.io/packagist/v/bref/symfony-bridge?style=flat-square)](https://packagist.org/packages/bref/symfony-bridge)

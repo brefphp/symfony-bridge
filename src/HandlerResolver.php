@@ -4,7 +4,7 @@ namespace Bref\SymfonyBridge;
 
 use Bref\Runtime\FileHandlerLocator;
 use Bref\SymfonyBridge\Http\KernelAdapter;
-use Closure;
+use Bref\SymfonyBridge\Runtime\BrefRuntime;
 use Exception;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -96,19 +96,30 @@ class HandlerResolver implements ContainerInterface
                 );
             }
 
-            $closure = require $bootstrapFile;
+            $app = require $bootstrapFile;
 
-            if (! $closure instanceof Closure) {
+            if (!is_object($app)) {
                 throw new Exception(sprintf(
-                    "The '%s' file must return an anonymous function (that returns the Symfony Kernel). Instead it returned '%s'. Either edit the file to return an anynomous function, or create a separate file (follow the online documentation to do so).",
+                    "The '%s' file must return an anonymous function (that returns the Symfony Kernel). Instead it returned '%s'. Either edit the file to return an anonymous function, or create a separate file (follow the online documentation to do so).",
                     $bootstrapFile,
-                    is_object($closure) ? get_class($closure) : gettype($closure),
+                    is_object($app) ? get_class($app) : gettype($app),
                 ));
             }
 
-            $context = $_SERVER;
+            $projectDir = getenv('LAMBDA_TASK_ROOT') ?: null;
 
-            $container = $closure($context);
+            // Use the Symfony Runtime component to resolve the closure and get the PSR-11 container
+            $options = $_SERVER['APP_RUNTIME_OPTIONS'] ?? [];
+            if ($projectDir) {
+                $options['project_dir'] = $projectDir;
+            }
+            $runtime = new BrefRuntime($options);
+
+            [$app, $args] = $runtime
+                ->getResolver($app)
+                ->resolve();
+
+            $container = $app(...$args);
 
             if ($container instanceof KernelInterface) {
                 $container->boot();

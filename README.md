@@ -1,4 +1,4 @@
-This package configures Symfony to run on AWS Lambda using [Bref](https://bref.sh/).
+Run Symfony on AWS Lambda using the [Bref](https://bref.sh/) runtime.
 
 [![Build Status](https://github.com/brefphp/symfony-bridge/workflows/Tests/badge.svg)](https://github.com/brefphp/symfony-bridge/actions)
 [![Latest Version](https://img.shields.io/packagist/v/bref/symfony-bridge?style=flat-square)](https://packagist.org/packages/bref/symfony-bridge)
@@ -118,6 +118,8 @@ functions:
             BREF_LOOP_MAX: 100
 ```
 
+The `App\Kernel` will be retrieved via Symfony Runtime from `public/index.php`. If you don't have a `public/index.php`, read the next sections.
+
 ## Class handlers
 
 To handle other events (e.g. [SQS messages with Symfony Messenger](https://github.com/brefphp/symfony-messenger)) via a class name:
@@ -133,9 +135,9 @@ functions:
             - ${bref:layer.php-80}
 ```
 
-The service will be retrieved from the Symfony Kernel returned by `public/index.php`.
+The service will be retrieved via Symfony Runtime from the Symfony Kernel returned by `public/index.php`.
 
-> Note: the service must be configured as `public: true` in the Symfony configuration.
+> Note: the service must be configured as **public** (`public: true`) in the Symfony configuration.
 
 ### Custom bootstrap file
 
@@ -157,6 +159,5 @@ And configure it in `serverless.yml`:
 # serverless.yml
 functions:
     sqsHandler:
--        handler: bin/consumer.php
-+        handler: kernel.php:App\Service\MyService
+        handler: kernel.php:App\Service\MyService
 ```

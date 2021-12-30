@@ -10,12 +10,9 @@ jobs:
       max-parallel: 10
       fail-fast: false
       matrix:
-        php: ['7.3', '7.4', '8.0', '8.1']
-        sf_version: ['4.4.*', '5.0.*', '5.2.*', '5.4.*', '6.0.*']
+        php: ['7.4', '8.0', '8.1']
+        sf_version: ['5.2.*', '5.4.*', '6.0.*']
         exclude:
-          - php: 7.3
-            sf_version: 6.0.*
-            
           - php: 7.4
             sf_version: 6.0.*
 
@@ -48,7 +45,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@2.7.0
         with:
-          php-version: 7.3
+          php-version: 7.4
           coverage: pcov
 
       - name: Checkout code
@@ -59,5 +56,5 @@ jobs:
 
       - name: Run tests
         env:
-          PHP_VERSION: 7.3
+          PHP_VERSION: 7.4
         run: ./vendor/bin/phpunit -v --coverage-text

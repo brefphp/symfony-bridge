@@ -114,7 +114,8 @@ class HandlerResolver implements ContainerInterface
             if ($projectDir) {
                 $options['project_dir'] = $projectDir;
             }
-            $runtime = new BrefRuntime($options);
+            $runtimeClass = $_SERVER['APP_RUNTIME'] ?? $_ENV['APP_RUNTIME'] ?? 'BrefRuntime';
+            $runtime = new $runtimeClass($options);
 
             [$app, $args] = $runtime
                 ->getResolver($app)

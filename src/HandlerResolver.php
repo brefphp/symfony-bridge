@@ -4,7 +4,6 @@ namespace Bref\SymfonyBridge;
 
 use Bref\Runtime\FileHandlerLocator;
 use Bref\SymfonyBridge\Http\KernelAdapter;
-use Bref\SymfonyBridge\Runtime\BrefRuntime;
 use Exception;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -114,7 +113,7 @@ class HandlerResolver implements ContainerInterface
             if ($projectDir) {
                 $options['project_dir'] = $projectDir;
             }
-            $runtimeClass = $_SERVER['APP_RUNTIME'] ?? $_ENV['APP_RUNTIME'] ?? 'BrefRuntime';
+            $runtimeClass = $_SERVER['APP_RUNTIME'] ?? $_ENV['APP_RUNTIME'] ?? '\\Bref\\SymfonyBridge\\Runtime\\BrefRuntime';
             $runtime = new $runtimeClass($options);
 
             [$app, $args] = $runtime

@@ -36,6 +36,7 @@
         "symfony/config": "^5.2|^6.0",
         "symfony/dependency-injection": "^5.2|^6.0",
         "symfony/framework-bundle": "^5.2|^6.0",
+        "symfony/phpunit-bridge": "^6.0",
         "symfony/process": "^5.2|^6.0"
     },
     "config": {

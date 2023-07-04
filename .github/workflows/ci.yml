@@ -53,5 +53,5 @@ jobs:
 
       - name: Run tests
         env:
-          PHP_VERSION: 8.0
+          PHP_VERSION: '8.0'
         run: ./vendor/bin/phpunit -v --coverage-text

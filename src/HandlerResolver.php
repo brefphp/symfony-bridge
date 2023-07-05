@@ -31,7 +31,7 @@ class HandlerResolver implements ContainerInterface
     /**
      * {@inheritDoc}
      */
-    public function get($id)
+    public function get($id): mixed
     {
         $isComposed = strpos($id, ':') !== false;
 

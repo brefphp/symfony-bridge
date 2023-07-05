@@ -54,7 +54,7 @@ abstract class BrefKernel extends Kernel
      * We also need to prepare the Cache dir in Kernel::boot in case we are in a Console or worker context
      * in which Kernel::handle is not called.
      */
-    public function boot()
+    public function boot(): void
     {
         $this->prepareCacheDir(parent::getCacheDir(), $this->getCacheDir());
         $this->ensureLogDir($this->getLogDir());

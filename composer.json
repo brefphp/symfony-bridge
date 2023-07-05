@@ -22,7 +22,7 @@
         }
     },
     "require": {
-        "php": ">=7.4",
+        "php": ">=8.0",
         "bref/bref": "^1.2|^2.0",
         "symfony/filesystem": "^5.2|^6.0",
         "symfony/http-kernel": "^5.2|^6.0",
@@ -36,6 +36,7 @@
         "symfony/config": "^5.2|^6.0",
         "symfony/dependency-injection": "^5.2|^6.0",
         "symfony/framework-bundle": "^5.2|^6.0",
+        "symfony/phpunit-bridge": "^6.0",
         "symfony/process": "^5.2|^6.0"
     },
     "config": {

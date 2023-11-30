@@ -10,8 +10,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand('app:ping')]
 class PingCommand extends Command
 {
-    protected static $defaultName = 'app:ping';
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $output->writeln('Ok');

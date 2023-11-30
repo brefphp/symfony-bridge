@@ -14,8 +14,6 @@ use Symfony\Contracts\Cache\CacheInterface;
 #[AsCommand('write-to-cache')]
 class WriteToCacheCommand extends Command
 {
-    protected static $defaultName = 'write-to-cache';
-
     /** @var CacheInterface */
     private $systemCache;
 

@@ -57,7 +57,7 @@ class Kernel extends BrefKernel
      *
      * It lets us detect whenever the compiled container is being rebuilt.
      */
-    protected function dumpContainer(ConfigCache $cache, ContainerBuilder $container, $class, $baseClass)
+    protected function dumpContainer(ConfigCache $cache, ContainerBuilder $container, $class, $baseClass): void
     {
         echo "Symfony is compiling the container\n";
 

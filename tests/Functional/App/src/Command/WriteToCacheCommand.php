@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -10,10 +11,9 @@ use Symfony\Contracts\Cache\CacheInterface;
 /**
  * This command tests writing to the system cache.
  */
+#[AsCommand('write-to-cache')]
 class WriteToCacheCommand extends Command
 {
-    protected static $defaultName = 'write-to-cache';
-
     /** @var CacheInterface */
     private $systemCache;
 

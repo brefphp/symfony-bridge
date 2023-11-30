@@ -10,8 +10,13 @@ jobs:
       max-parallel: 10
       fail-fast: false
       matrix:
-        php: ['8.0', '8.1', '8.2', '8.3']
-        sf_version: ['5.4.*', '6.4.*', '7.0.*']
+        php: ['8.2', '8.3']
+        sf_version: ['7.0.*']
+        include:
+            - php: '8.0'
+              sf_version: '5.4.*'
+            - php: '8.1'
+              sf_version: '6.4.*'
 
     steps:
       - name: Set up PHP

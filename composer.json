@@ -1,6 +1,6 @@
 {
     "name": "bref/symfony-bridge",
-    "description": "Package that makes Symfony works on AWS Lambda with Bref",
+    "description": "Makes Symfony work on AWS Lambda with Bref",
     "keywords": [
         "aws",
         "lambda",

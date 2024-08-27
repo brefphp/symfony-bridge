@@ -109,7 +109,7 @@ class HandlerResolver implements ContainerInterface
 
             // Use the Symfony Runtime component to resolve the closure and get the PSR-11 container
             $options = $_SERVER['APP_RUNTIME_OPTIONS'] ?? [];
-            if (!isset($options['project_dir'])) {
+            if (! isset($options['project_dir'])) {
                 $options['project_dir'] = dirname(__DIR__, 4);
             }
             $runtime = new BrefRuntime($options);

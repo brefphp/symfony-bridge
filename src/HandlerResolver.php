@@ -4,10 +4,12 @@ namespace Bref\SymfonyBridge;
 
 use Bref\Runtime\FileHandlerLocator;
 use Bref\SymfonyBridge\Http\KernelAdapter;
+use Bref\SymfonyBridge\Runtime\BrefRuntime;
 use Exception;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Runtime\SymfonyRuntime;
 
 /**
  * This class resolves handlers.
@@ -113,12 +115,12 @@ class HandlerResolver implements ContainerInterface
             if ($projectDir) {
                 $options['project_dir'] = $projectDir;
             }
-            $runtimeClass = $_SERVER['APP_RUNTIME'] ?? $_ENV['APP_RUNTIME'] ?? '\\Bref\\SymfonyBridge\\Runtime\\BrefRuntime';
+
+            $runtimeClass = $_SERVER['APP_RUNTIME'] ?? $_ENV['APP_RUNTIME'] ?? BrefRuntime::class;
             $runtime = new $runtimeClass($options);
-            if (!$runtime instanceof \Symfony\Component\Runtime\SymfonyRuntime) {
-                throw new \RuntimeException("The runtime class '$runtimeClass' must extend Symfony\Component\Runtime\SymfonyRuntime.");
+            if (!$runtime instanceof SymfonyRuntime) {
+                throw new \RuntimeException(sprintf('The runtime class "%s" must extend Symfony\Component\Runtime\SymfonyRuntime.', $runtimeClass));
             }
-}
 
             [$app, $args] = $runtime
                 ->getResolver($app)

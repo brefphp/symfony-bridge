@@ -118,7 +118,7 @@ class HandlerResolver implements ContainerInterface
 
             $runtimeClass = $_SERVER['APP_RUNTIME'] ?? $_ENV['APP_RUNTIME'] ?? BrefRuntime::class;
             $runtime = new $runtimeClass($options);
-            if (!$runtime instanceof SymfonyRuntime) {
+            if (! $runtime instanceof SymfonyRuntime) {
                 throw new \RuntimeException(sprintf('The runtime class "%s" must extend Symfony\Component\Runtime\SymfonyRuntime.', $runtimeClass));
             }
 

@@ -107,12 +107,10 @@ class HandlerResolver implements ContainerInterface
                 ));
             }
 
-            $projectDir = getenv('LAMBDA_TASK_ROOT') ?: null;
-
             // Use the Symfony Runtime component to resolve the closure and get the PSR-11 container
             $options = $_SERVER['APP_RUNTIME_OPTIONS'] ?? [];
-            if ($projectDir) {
-                $options['project_dir'] = $projectDir;
+            if (!isset($options['project_dir'])) {
+                $options['project_dir'] = dirname(__DIR__, 4);
             }
             $runtime = new BrefRuntime($options);
 

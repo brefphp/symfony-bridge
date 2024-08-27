@@ -9,6 +9,7 @@ use Exception;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Runtime\SymfonyRuntime;
 
 /**
  * This class resolves handlers.
@@ -114,7 +115,12 @@ class HandlerResolver implements ContainerInterface
             if ($projectDir) {
                 $options['project_dir'] = $projectDir;
             }
-            $runtime = new BrefRuntime($options);
+
+            $runtimeClass = $_SERVER['APP_RUNTIME'] ?? $_ENV['APP_RUNTIME'] ?? BrefRuntime::class;
+            $runtime = new $runtimeClass($options);
+            if (! $runtime instanceof SymfonyRuntime) {
+                throw new \RuntimeException(sprintf('The runtime class "%s" must extend Symfony\Component\Runtime\SymfonyRuntime.', $runtimeClass));
+            }
 
             [$app, $args] = $runtime
                 ->getResolver($app)

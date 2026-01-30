@@ -23,7 +23,7 @@
     },
     "require": {
         "php": ">=8.0",
-        "bref/bref": "^1.2|^2.0",
+        "bref/bref": "^1.2|^2.0|^3.0",
         "bref/monolog-bridge": "^1.0",
         "symfony/filesystem": "^5.4|^6.0|^7.0|^8.0",
         "symfony/http-kernel": "^5.4|^6.0|^7.0|^8.0",

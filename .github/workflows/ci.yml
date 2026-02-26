@@ -13,9 +13,7 @@ jobs:
         php: ['8.4']
         sf_version: ['8.0.*']
         include:
-            - php: '8.0'
-              sf_version: '5.4.*'
-            - php: '8.1'
+            - php: '8.2'
               sf_version: '6.4.*'
             - php: '8.2'
               sf_version: '7.4.*'
@@ -49,7 +47,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@2.7.0
         with:
-          php-version: 8.0
+          php-version: 8.2
           coverage: pcov
 
       - name: Checkout code
@@ -60,5 +58,5 @@ jobs:
 
       - name: Run tests
         env:
-          PHP_VERSION: '8.0'
+          PHP_VERSION: '8.2'
         run: ./vendor/bin/phpunit -v --coverage-text

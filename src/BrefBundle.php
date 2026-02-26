@@ -9,6 +9,6 @@ class BrefBundle extends Bundle
 {
     public function build(ContainerBuilder $container): void
     {
-        $container->addCompilerPass(new CloudWatchMonologFormatterPass());
+        $container->addCompilerPass(new CloudWatchMonologFormatterPass);
     }
 }

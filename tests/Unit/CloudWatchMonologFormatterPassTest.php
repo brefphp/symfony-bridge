@@ -4,6 +4,7 @@ namespace Bref\SymfonyBridge\Test\Unit;
 
 use Bref\Monolog\CloudWatchFormatter;
 use Bref\SymfonyBridge\CloudWatchMonologFormatterPass;
+use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -72,5 +73,43 @@ class CloudWatchMonologFormatterPassTest extends TestCase
 
         // Formatter service should still be registered (it's harmless)
         self::assertTrue($container->has('bref.cloudwatch_formatter'));
+    }
+
+    public function testSkipsHandlersThatDoNotImplementFormattableHandlerInterface()
+    {
+        $container = new ContainerBuilder;
+        $container->register('monolog.handler.main', StreamHandler::class);
+        $container->register('monolog.handler.null', NullHandler::class);
+
+        $pass = new CloudWatchMonologFormatterPass;
+        $pass->process($container);
+
+        // StreamHandler should get the formatter
+        $mainCalls = $container->getDefinition('monolog.handler.main')->getMethodCalls();
+        self::assertCount(1, $mainCalls);
+        self::assertSame('setFormatter', $mainCalls[0][0]);
+
+        // NullHandler should NOT get the formatter
+        $nullCalls = $container->getDefinition('monolog.handler.null')->getMethodCalls();
+        self::assertEmpty($nullCalls);
+    }
+
+    public function testSkipsDefinitionsWithNoClass()
+    {
+        $container = new ContainerBuilder;
+        $container->register('monolog.handler.main', StreamHandler::class);
+        $container->register('monolog.handler.main.not_found_strategy');
+
+        $pass = new CloudWatchMonologFormatterPass;
+        $pass->process($container);
+
+        // StreamHandler should get the formatter
+        $mainCalls = $container->getDefinition('monolog.handler.main')->getMethodCalls();
+        self::assertCount(1, $mainCalls);
+        self::assertSame('setFormatter', $mainCalls[0][0]);
+
+        // The classless definition should NOT get the formatter
+        $strategyCalls = $container->getDefinition('monolog.handler.main.not_found_strategy')->getMethodCalls();
+        self::assertEmpty($strategyCalls);
     }
 }

@@ -3,6 +3,7 @@
 namespace Bref\SymfonyBridge;
 
 use Bref\Monolog\CloudWatchFormatter;
+use Monolog\Handler\FormattableHandlerInterface;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -25,6 +26,13 @@ class CloudWatchMonologFormatterPass implements CompilerPassInterface
 
         foreach ($container->getDefinitions() as $id => $definition) {
             if (! str_starts_with($id, 'monolog.handler.')) {
+                continue;
+            }
+
+            // Skip services whose class doesn't support setFormatter()
+            // (e.g. NullHandler, activation strategy classes)
+            $class = $definition->getClass();
+            if ($class === null || ! is_a($class, FormattableHandlerInterface::class, true)) {
                 continue;
             }
 

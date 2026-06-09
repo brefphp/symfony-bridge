@@ -10,6 +10,13 @@ use Symfony\Component\HttpKernel\Kernel;
 
 abstract class BrefKernel extends Kernel
 {
+    public function __construct(string $environment, bool $debug)
+    {
+        parent::__construct($environment, $debug);
+
+        $this->configureCacheDir();
+    }
+
     public function isLambda(): bool
     {
         return getenv('LAMBDA_TASK_ROOT') !== false;
@@ -133,6 +140,15 @@ abstract class BrefKernel extends Kernel
 
         $filesystem = new Filesystem;
         $filesystem->mkdir($writeLogDir);
+    }
+
+    private function configureCacheDir(): void
+    {
+        if (isset($_SERVER['APP_CACHE_DIR']) || ! $this->isLambda()) {
+            return;
+        }
+
+        $_SERVER['APP_CACHE_DIR'] = '/tmp/cache';
     }
 
     /**

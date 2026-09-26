@@ -40,13 +40,6 @@
         "symfony/phpunit-bridge": "^6.0|^7.0|^8.0",
         "symfony/process": "^5.4|^6.0|^7.0|^8.0"
     },
-    "extra": {
-        "symfony": {
-            "bundles": {
-                "Bref\\SymfonyBridge\\BrefBundle": ["all"]
-            }
-        }
-    },
     "config": {
         "sort-packages": true,
         "allow-plugins": {

@@ -2,13 +2,9 @@
 
 namespace Bref\SymfonyBridge;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
-
-class BrefBundle extends Bundle
+/**
+ * @deprecated Register {@see BrefSymfonyBridgeBundle} instead, which Symfony Flex registers automatically.
+ */
+class BrefBundle extends BrefSymfonyBridgeBundle
 {
-    public function build(ContainerBuilder $container): void
-    {
-        $container->addCompilerPass(new CloudWatchMonologFormatterPass);
-    }
 }

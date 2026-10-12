@@ -27,7 +27,16 @@ class KernelAdapter implements RequestHandlerInterface
     public function __construct(HttpKernelInterface $kernel)
     {
         $this->kernel = $kernel;
-        $this->symfonyFactory = new HttpFoundationFactory;
+        $this->symfonyFactory = new class extends HttpFoundationFactory {
+            /**
+             * Symfony moves each uploaded file to a new temporary file: name it like Bref names uploads,
+             * so that Bref's Psr15Handler deletes it when the next request starts.
+             */
+            protected function getTemporaryPath(): string
+            {
+                return tempnam(sys_get_temp_dir(), 'bref_upload_');
+            }
+        };
         $psr17Factory = new Psr17Factory;
         $this->psrFactory = new PsrHttpFactory($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory);
     }

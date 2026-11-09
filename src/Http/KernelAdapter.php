@@ -8,6 +8,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
 
@@ -47,6 +49,20 @@ class KernelAdapter implements RequestHandlerInterface
         $symfonyRequest = $this->symfonyFactory->createRequest($request);
 
         $symfonyResponse = $this->kernel->handle($symfonyRequest);
+
+        // Streamed responses are produced while Bref sends them, kernel.terminate runs after their content
+        if ($symfonyResponse instanceof StreamedResponse) {
+            $headers = new Response('', $symfonyResponse->getStatusCode(), $symfonyResponse->headers->all());
+
+            return $this->psrFactory->createResponse($headers)->withBody(new StreamedBody(
+                $symfonyResponse,
+                function () use ($symfonyRequest, $symfonyResponse) {
+                    if ($this->kernel instanceof TerminableInterface) {
+                        $this->kernel->terminate($symfonyRequest, $symfonyResponse);
+                    }
+                },
+            ));
+        }
 
         if ($this->kernel instanceof TerminableInterface) {
             $this->kernel->terminate($symfonyRequest, $symfonyResponse);

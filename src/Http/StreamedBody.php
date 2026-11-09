@@ -2,64 +2,69 @@
 
 namespace Bref\SymfonyBridge\Http;
 
-use Fiber;
+use Bref\Event\Http\PushStream;
+use Closure;
 use Psr\Http\Message\StreamInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * The body of a StreamedResponse, produced while it is read: each read() runs the
- * response's callback until its next output, so that Bref sends it right away.
+ * The body of a StreamedResponse: Bref runs its callback and sends each output as it is written.
  *
  * @internal
  */
-final class StreamedBody implements StreamInterface
+final class StreamedBody implements StreamInterface, PushStream
 {
-    private Fiber $fiber;
+    private bool $consumed = false;
 
     /**
-     * @param callable(): void $afterContent Runs once the content has been produced (e.g. kernel.terminate).
+     * @param Closure(): void $afterContent Runs once the content has been produced (e.g. kernel.terminate).
      */
-    public function __construct(StreamedResponse $response, callable $afterContent)
+    public function __construct(private StreamedResponse $response, private Closure $afterContent)
     {
-        $this->fiber = new Fiber(function () use ($response, $afterContent): void {
-            ob_start(function (string $buffer): string {
-                if ($buffer === '' || Fiber::getCurrent() === null) {
-                    return $buffer;
-                }
-                Fiber::suspend($buffer);
+    }
 
-                return '';
-            }, 1);
-            try {
-                $response->sendContent();
-            } finally {
-                ob_end_clean();
+    public function writeTo(callable $write): void
+    {
+        $this->consumed = true;
+        ob_start(function (string $buffer) use ($write): string {
+            if ($buffer !== '') {
+                $write($buffer);
             }
-            $afterContent();
-        });
+
+            return '';
+        }, 1);
+        try {
+            $this->response->sendContent();
+        } finally {
+            ob_end_clean();
+        }
+        ($this->afterContent)();
+    }
+
+    /**
+     * For readers other than Bref: the whole content at once.
+     */
+    public function getContents(): string
+    {
+        $contents = '';
+        if (! $this->consumed) {
+            $this->writeTo(function (string $chunk) use (&$contents): void {
+                $contents .= $chunk;
+            });
+        }
+
+        return $contents;
     }
 
     public function read(int $length): string
     {
-        $chunk = $this->fiber->isStarted() ? $this->fiber->resume() : $this->fiber->start();
-
-        return is_string($chunk) ? $chunk : '';
+        return $this->getContents();
     }
 
     public function eof(): bool
     {
-        return $this->fiber->isTerminated();
-    }
-
-    public function getContents(): string
-    {
-        $contents = '';
-        while (! $this->eof()) {
-            $contents .= $this->read(8192);
-        }
-
-        return $contents;
+        return $this->consumed;
     }
 
     public function __toString(): string

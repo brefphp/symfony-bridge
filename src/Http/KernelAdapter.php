@@ -56,7 +56,7 @@ class KernelAdapter implements RequestHandlerInterface
 
             return $this->psrFactory->createResponse($headers)->withBody(new StreamedBody(
                 $symfonyResponse,
-                function () use ($symfonyRequest, $symfonyResponse) {
+                function () use ($symfonyRequest, $symfonyResponse): void {
                     if ($this->kernel instanceof TerminableInterface) {
                         $this->kernel->terminate($symfonyRequest, $symfonyResponse);
                     }

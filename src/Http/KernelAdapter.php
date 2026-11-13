@@ -53,6 +53,8 @@ class KernelAdapter extends HttpHandler
 
         $writer->start($response->getStatusCode(), $response->headers->all());
         $writer->capture(fn () => $response->sendContent());
+        // The client gets the response now: kernel.terminate listeners run after
+        $writer->end();
 
         if ($this->kernel instanceof TerminableInterface) {
             $this->kernel->terminate($request, $response);

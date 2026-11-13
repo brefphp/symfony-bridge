@@ -24,12 +24,12 @@ class KernelAdapterTest extends TestCase
         });
         $handler = new KernelAdapter($kernel);
 
-        $handler->handle($this->uploadEvent(), Context::fake());
+        $handler->handle($this->uploadEvent(), Context::fake())->contents();
         $previousUpload = $uploadedFile;
         // Symfony moves the file Bref created to a new temporary file
         self::assertSame('Hello', file_get_contents($previousUpload));
 
-        $handler->handle($this->uploadEvent(), Context::fake());
+        $handler->handle($this->uploadEvent(), Context::fake())->contents();
 
         self::assertFileNotExists($previousUpload);
         unlink($uploadedFile);
@@ -54,6 +54,8 @@ class KernelAdapterTest extends TestCase
             $result->writeTo(function (string $chunk) use (&$chunks, &$log) {
                 $chunks[] = $chunk;
                 $log[] = 'chunk';
+            }, function () use (&$log) {
+                $log[] = 'end';
             });
         } finally {
             putenv('BREF_RESPONSE_STREAMING');
@@ -63,8 +65,8 @@ class KernelAdapterTest extends TestCase
         self::assertSame(201, $metadata['statusCode']);
         self::assertSame('value', $metadata['headers']['X-Custom']);
         self::assertSame(['Hello', ' world'], array_slice($chunks, 1));
-        // Sent as it is produced, then the kernel terminates
-        self::assertSame(['chunk', 'chunk', 'between', 'chunk', 'terminate'], $log);
+        // Sent as it is produced, then the client gets the end of the response, then the kernel terminates
+        self::assertSame(['chunk', 'chunk', 'between', 'chunk', 'end', 'terminate'], $log);
     }
 
     public function test responses are buffered for other invokers()
@@ -76,7 +78,7 @@ class KernelAdapterTest extends TestCase
             echo ' world';
         }), $log);
 
-        $response = (new KernelAdapter($kernel))->handle($this->event('abc.execute-api.eu-west-3.amazonaws.com'), Context::fake());
+        $response = json_decode((new KernelAdapter($kernel))->handle($this->event('abc.execute-api.eu-west-3.amazonaws.com'), Context::fake())->contents(), true);
 
         self::assertSame('Hello world', $response['body']);
         self::assertSame(['terminate'], $log);
@@ -89,7 +91,7 @@ class KernelAdapterTest extends TestCase
         $log = [];
         $kernel = $this->kernel(fn () => (new BinaryFileResponse($file))->deleteFileAfterSend(), $log);
 
-        $response = (new KernelAdapter($kernel))->handle($this->event('abc.execute-api.eu-west-3.amazonaws.com'), Context::fake());
+        $response = json_decode((new KernelAdapter($kernel))->handle($this->event('abc.execute-api.eu-west-3.amazonaws.com'), Context::fake())->contents(), true);
 
         self::assertSame('File content', $response['body']);
         self::assertFalse(file_exists($file));

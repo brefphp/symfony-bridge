@@ -2,27 +2,26 @@
 
 namespace Bref\SymfonyBridge\Http;
 
-use Nyholm\Psr7\Factory\Psr17Factory;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\RequestHandlerInterface;
+use Bref\Context\Context;
+use Bref\Event\Http\HttpHandler;
+use Bref\Event\Http\HttpRequestEvent;
+use Bref\Event\Http\HttpResponseWriter;
+use Bref\Event\Http\Psr7Bridge;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
-use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
 
 /**
- * This turns a Symfony Kernel into a PSR-15 handler.
+ * Runs a Symfony Kernel as Bref's HTTP handler.
  *
- * That means the Symfony Kernel can now be used by Bref (which supports PSR-15)
- * to handle HTTP requests from API Gateway.
+ * The response is written like Symfony's front controller sends it: its content as it is produced
+ * (streamed responses, files…), then the kernel terminates.
  */
-class KernelAdapter implements RequestHandlerInterface
+class KernelAdapter extends HttpHandler
 {
     private HttpKernelInterface $kernel;
-    // PSR-15 to Symfony converters
+    // PSR-7 to Symfony converter
     private HttpFoundationFactory $symfonyFactory;
-    private PsrHttpFactory $psrFactory;
 
     public function __construct(HttpKernelInterface $kernel)
     {
@@ -30,29 +29,29 @@ class KernelAdapter implements RequestHandlerInterface
         $this->symfonyFactory = new class extends HttpFoundationFactory {
             /**
              * Symfony moves each uploaded file to a new temporary file: name it like Bref names uploads,
-             * so that Bref's Psr15Handler deletes it when the next request starts.
+             * so that they are deleted when the next request starts.
              */
             protected function getTemporaryPath(): string
             {
                 return tempnam(sys_get_temp_dir(), 'bref_upload_');
             }
         };
-        $psr17Factory = new Psr17Factory;
-        $this->psrFactory = new PsrHttpFactory($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory);
     }
 
-    public function handle(ServerRequestInterface $request): ResponseInterface
+    protected function respond(HttpRequestEvent $event, Context $context, HttpResponseWriter $writer): void
     {
-        // From PSR-7 to Symfony
-        $symfonyRequest = $this->symfonyFactory->createRequest($request);
+        // Delete the files uploaded with the previous request: the Lambda instance is reused
+        Psr7Bridge::cleanupUploadedFiles();
 
-        $symfonyResponse = $this->kernel->handle($symfonyRequest);
+        $request = $this->symfonyFactory->createRequest(Psr7Bridge::convertRequest($event, $context));
+
+        $response = $this->kernel->handle($request);
+
+        $writer->start($response->getStatusCode(), $response->headers->all());
+        $writer->capture(fn () => $response->sendContent());
 
         if ($this->kernel instanceof TerminableInterface) {
-            $this->kernel->terminate($symfonyRequest, $symfonyResponse);
+            $this->kernel->terminate($request, $response);
         }
-
-        // From Symfony to PSR-7
-        return $this->psrFactory->createResponse($symfonyResponse);
     }
 }

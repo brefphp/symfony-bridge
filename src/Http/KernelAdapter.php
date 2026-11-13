@@ -27,6 +27,10 @@ class KernelAdapter implements RequestHandlerInterface
     public function __construct(HttpKernelInterface $kernel)
     {
         $this->kernel = $kernel;
+        // The kernel serves HTTP requests in a long-running process, like Symfony's FrankenPHP worker mode.
+        // Without it, Symfony runs as a console application (PHP's CLI SAPI): e.g. errors would be rendered
+        // for a terminal, with their details, instead of as error pages.
+        $_SERVER['APP_RUNTIME_MODE'] ??= 'web=1&worker=1';
         $this->symfonyFactory = new class extends HttpFoundationFactory {
             /**
              * Symfony moves each uploaded file to a new temporary file: name it like Bref names uploads,

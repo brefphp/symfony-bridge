@@ -33,6 +33,19 @@ class KernelAdapterTest extends TestCase
         unlink($uploadedFile);
     }
 
+    public function test the kernel runs in web mode()
+    {
+        unset($_SERVER['APP_RUNTIME_MODE']);
+        try {
+            new KernelAdapter($this->createMock(HttpKernelInterface::class));
+
+            // E.g. errors are rendered as error pages, not for the console
+            self::assertSame('web=1&worker=1', $_SERVER['APP_RUNTIME_MODE']);
+        } finally {
+            unset($_SERVER['APP_RUNTIME_MODE']);
+        }
+    }
+
     private function uploadEvent(): array
     {
         return [

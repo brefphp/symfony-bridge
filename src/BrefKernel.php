@@ -15,6 +15,7 @@ abstract class BrefKernel extends Kernel
         parent::__construct($environment, $debug);
 
         $this->configureCacheDir();
+        $this->configureShareDir();
     }
 
     public function isLambda(): bool
@@ -149,6 +150,27 @@ abstract class BrefKernel extends Kernel
         }
 
         $_SERVER['APP_CACHE_DIR'] = '/tmp/cache';
+    }
+
+    /**
+     * Since Symfony 7.4, `cache.app` is stored in the share dir, and the Symfony skeleton sets
+     * `APP_SHARE_DIR=var/share`. That directory is in the project, which is read-only on Lambda.
+     *
+     * Without a relative `APP_SHARE_DIR`, Symfony uses the cache dir as the share dir. The compiled
+     * container then resolves it from the location of the cache dir at runtime, like `kernel.cache_dir`:
+     * it points to `/tmp/cache` on Lambda even when the cache was warmed up before deploying.
+     * An absolute `APP_SHARE_DIR` (for example an EFS mount) is kept.
+     *
+     * This applies outside Lambda too, because the container is usually compiled before deploying.
+     */
+    private function configureShareDir(): void
+    {
+        $shareDir = $_SERVER['APP_SHARE_DIR'] ?? null;
+        if (! is_string($shareDir) || (new Filesystem)->isAbsolutePath($shareDir)) {
+            return;
+        }
+
+        unset($_SERVER['APP_SHARE_DIR']);
     }
 
     /**

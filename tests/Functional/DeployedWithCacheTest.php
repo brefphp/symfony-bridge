@@ -37,16 +37,11 @@ class DeployedWithCacheTest extends FunctionalTest
 
     public function test that the Symfony system cache can be written to(): void
     {
-        $symfonyConsole = $this->runSymfonyConsole('write-to-cache');
-        $this->assertCommandIsSuccessful($symfonyConsole);
-        $this->assertStringContainsString('The cache was empty, writing entry `foo`', $symfonyConsole->getOutput());
+        $this->assertCacheCanBeWrittenTo('system');
+    }
 
-        // On the second run, the cache should already exist
-        // We make sure here that the cache is actually written to disk
-        // (i.e. that it works instead of silently failing)
-        $symfonyConsole = $this->runSymfonyConsole('write-to-cache');
-        $this->assertCommandIsSuccessful($symfonyConsole);
-        // We check that it does *NOT* contain the message this time
-        $this->assertStringNotContainsString('The cache was empty, writing entry `foo`', $symfonyConsole->getOutput());
+    public function test that the Symfony app cache can be written to(): void
+    {
+        $this->assertCacheCanBeWrittenTo('app');
     }
 }

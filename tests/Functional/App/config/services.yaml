@@ -29,3 +29,4 @@ services:
     App\Command\WriteToCacheCommand:
         arguments:
             - '@cache.system'
+            - '@cache.app'

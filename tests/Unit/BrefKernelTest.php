@@ -16,6 +16,9 @@ class BrefKernelTest extends TestCase
     /** @var string|null */
     private $serverAppCacheDir;
 
+    /** @var string|null */
+    private $serverAppShareDir;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -23,10 +26,11 @@ class BrefKernelTest extends TestCase
         $this->lambdaTaskRoot = getenv('LAMBDA_TASK_ROOT');
         $this->appCacheDir = getenv('APP_CACHE_DIR');
         $this->serverAppCacheDir = $_SERVER['APP_CACHE_DIR'] ?? null;
+        $this->serverAppShareDir = $_SERVER['APP_SHARE_DIR'] ?? null;
 
         putenv('LAMBDA_TASK_ROOT');
         putenv('APP_CACHE_DIR');
-        unset($_SERVER['APP_CACHE_DIR']);
+        unset($_SERVER['APP_CACHE_DIR'], $_SERVER['APP_SHARE_DIR']);
     }
 
     protected function tearDown(): void
@@ -38,6 +42,12 @@ class BrefKernelTest extends TestCase
             unset($_SERVER['APP_CACHE_DIR']);
         } else {
             $_SERVER['APP_CACHE_DIR'] = $this->serverAppCacheDir;
+        }
+
+        if ($this->serverAppShareDir === null) {
+            unset($_SERVER['APP_SHARE_DIR']);
+        } else {
+            $_SERVER['APP_SHARE_DIR'] = $this->serverAppShareDir;
         }
 
         parent::tearDown();
@@ -86,6 +96,38 @@ class BrefKernelTest extends TestCase
         new TestKernel;
 
         self::assertSame('/custom/cache', $_SERVER['APP_CACHE_DIR']);
+    }
+
+    public function testItStoresARelativeShareDirInTheCacheDir(): void
+    {
+        $_SERVER['APP_SHARE_DIR'] = 'var/share';
+
+        new TestKernel;
+
+        self::assertArrayNotHasKey('APP_SHARE_DIR', $_SERVER);
+    }
+
+    public function testItStoresARelativeShareDirInTheCacheDirOnLambda(): void
+    {
+        putenv('LAMBDA_TASK_ROOT=/var/task');
+        $_SERVER['APP_SHARE_DIR'] = 'var/share';
+
+        $kernel = new TestKernel;
+
+        self::assertArrayNotHasKey('APP_SHARE_DIR', $_SERVER);
+        if (method_exists($kernel, 'getShareDir')) {
+            self::assertSame('/tmp/cache/dev', $kernel->getShareDir());
+        }
+    }
+
+    public function testItDoesNotOverrideAnAbsoluteShareDir(): void
+    {
+        putenv('LAMBDA_TASK_ROOT=/var/task');
+        $_SERVER['APP_SHARE_DIR'] = '/mnt/efs/share';
+
+        new TestKernel;
+
+        self::assertSame('/mnt/efs/share', $_SERVER['APP_SHARE_DIR']);
     }
 
     /**

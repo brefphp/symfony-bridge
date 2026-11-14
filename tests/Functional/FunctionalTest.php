@@ -68,12 +68,13 @@ abstract class FunctionalTest extends TestCase
         $composerInstall->mustRun();
     }
 
-    protected function runSymfonyConsole(string $command): Process
+    protected function runSymfonyConsole(string $command, string ...$arguments): Process
     {
         return $this->runInDockerProcess([
             'tests/Functional/App/bin/console',
             '--env=prod',
             $command,
+            ...$arguments,
         ]);
     }
 
@@ -88,6 +89,21 @@ abstract class FunctionalTest extends TestCase
         $this->assertTrue($command->isSuccessful(), $message);
         $this->assertStringNotContainsStringIgnoringCase('Warning', $message, $message);
         $this->assertStringNotContainsStringIgnoringCase('Error', $message, $message);
+    }
+
+    protected function assertCacheCanBeWrittenTo(string $pool): void
+    {
+        $symfonyConsole = $this->runSymfonyConsole('write-to-cache', $pool);
+        $this->assertCommandIsSuccessful($symfonyConsole);
+        $this->assertStringContainsString('The cache was empty, writing entry `foo`', $symfonyConsole->getOutput());
+
+        // On the second run, the cache should already exist
+        // We make sure here that the cache is actually written to disk
+        // (i.e. that it works instead of silently failing)
+        $symfonyConsole = $this->runSymfonyConsole('write-to-cache', $pool);
+        $this->assertCommandIsSuccessful($symfonyConsole);
+        // We check that it does *NOT* contain the message this time
+        $this->assertStringNotContainsString('The cache was empty, writing entry `foo`', $symfonyConsole->getOutput());
     }
 
     protected function assertCompiledContainerExistsInTmp(): void

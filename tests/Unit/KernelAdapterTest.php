@@ -54,6 +54,8 @@ class KernelAdapterTest extends TestCase
             $result->writeTo(function (string $chunk) use (&$chunks, &$log) {
                 $chunks[] = $chunk;
                 $log[] = 'chunk';
+            }, function () use (&$log) {
+                $log[] = 'end';
             });
         } finally {
             putenv('BREF_RESPONSE_STREAMING');
@@ -63,8 +65,8 @@ class KernelAdapterTest extends TestCase
         self::assertSame(201, $metadata['statusCode']);
         self::assertSame('value', $metadata['headers']['X-Custom']);
         self::assertSame(['Hello', ' world'], array_slice($chunks, 1));
-        // Sent as it is produced, then the kernel terminates
-        self::assertSame(['chunk', 'chunk', 'between', 'chunk', 'terminate'], $log);
+        // Sent as it is produced, then the client gets the end of the response, then the kernel terminates
+        self::assertSame(['chunk', 'chunk', 'between', 'chunk', 'end', 'terminate'], $log);
     }
 
     public function test responses are buffered for other invokers()

@@ -36,6 +36,11 @@ class CloudWatchMonologFormatterPass implements CompilerPassInterface
                 continue;
             }
 
+            // Wrappers such as fingers_crossed pass the formatter on to the handler they wrap, which gets its own
+            if ($this->wrapsHandler($definition->getArguments())) {
+                continue;
+            }
+
             // Don't override formatter if explicitly set by the user
             foreach ($definition->getMethodCalls() as [$method]) {
                 if ($method === 'setFormatter') {
@@ -45,5 +50,19 @@ class CloudWatchMonologFormatterPass implements CompilerPassInterface
 
             $definition->addMethodCall('setFormatter', [$formatterRef]);
         }
+    }
+
+    /**
+     * @param array<mixed> $arguments
+     */
+    private function wrapsHandler(array $arguments): bool
+    {
+        foreach ($arguments as $argument) {
+            if ($argument instanceof Reference && str_starts_with((string) $argument, 'monolog.handler.')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

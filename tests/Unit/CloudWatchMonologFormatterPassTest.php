@@ -4,6 +4,7 @@ namespace Bref\SymfonyBridge\Test\Unit;
 
 use Bref\Monolog\CloudWatchFormatter;
 use Bref\SymfonyBridge\CloudWatchMonologFormatterPass;
+use Monolog\Handler\FingersCrossedHandler;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use PHPUnit\Framework\TestCase;
@@ -111,5 +112,41 @@ class CloudWatchMonologFormatterPassTest extends TestCase
         // The classless definition should NOT get the formatter
         $strategyCalls = $container->getDefinition('monolog.handler.main.not_found_strategy')->getMethodCalls();
         self::assertEmpty($strategyCalls);
+    }
+
+    public function testSkipsHandlersThatWrapAnotherHandler()
+    {
+        $container = new ContainerBuilder;
+        $container->register('monolog.handler.nested', StreamHandler::class);
+        $container->register('monolog.handler.main', FingersCrossedHandler::class)
+            ->setArguments([new Reference('monolog.handler.nested')]);
+
+        $pass = new CloudWatchMonologFormatterPass;
+        $pass->process($container);
+
+        // The wrapped handler gets the formatter
+        $nestedCalls = $container->getDefinition('monolog.handler.nested')->getMethodCalls();
+        self::assertCount(1, $nestedCalls);
+        self::assertSame('bref.cloudwatch_formatter', (string) $nestedCalls[0][1][0]);
+
+        // The wrapper doesn't, as it would pass it on to the wrapped handler, which may not support formatters
+        self::assertEmpty($container->getDefinition('monolog.handler.main')->getMethodCalls());
+    }
+
+    public function testWrapperDoesNotOverrideExplicitFormatterOfWrappedHandler()
+    {
+        $container = new ContainerBuilder;
+        $container->register('monolog.handler.nested', StreamHandler::class)
+            ->addMethodCall('setFormatter', [new Reference('my_custom_formatter')]);
+        $container->register('monolog.handler.main', FingersCrossedHandler::class)
+            ->setArguments([new Reference('monolog.handler.nested')]);
+
+        $pass = new CloudWatchMonologFormatterPass;
+        $pass->process($container);
+
+        $nestedCalls = $container->getDefinition('monolog.handler.nested')->getMethodCalls();
+        self::assertCount(1, $nestedCalls);
+        self::assertSame('my_custom_formatter', (string) $nestedCalls[0][1][0]);
+        self::assertEmpty($container->getDefinition('monolog.handler.main')->getMethodCalls());
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Bref\SymfonyBridge;
 
+use Bref\SymfonyBridge\Doctrine\ConnectTimeoutMiddleware;
+use Doctrine\DBAL\Driver\Middleware\AbstractDriverMiddleware;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -14,5 +16,11 @@ class BrefSymfonyBridgeBundle extends Bundle
     public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new CloudWatchMonologFormatterPass);
+
+        // Registered when Doctrine DBAL 3.3+ is installed, the middleware only acts on Lambda (the container can be compiled before deploying)
+        if (class_exists(AbstractDriverMiddleware::class)) {
+            $container->register('bref.doctrine.connect_timeout_middleware', ConnectTimeoutMiddleware::class)
+                ->addTag('doctrine.middleware');
+        }
     }
 }

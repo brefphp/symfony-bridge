@@ -3,13 +3,13 @@
 namespace Bref\SymfonyBridge\Test\Unit;
 
 use Bref\Bref;
+use Bref\Event\Handler;
 use Bref\SymfonyBridge\HandlerResolver;
 use Bref\SymfonyBridge\Http\KernelAdapter;
 use Bref\SymfonyBridge\Test\Fixtures\MyService;
 use Bref\SymfonyBridge\Test\Fixtures\TestKernel;
 use Closure;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Server\RequestHandlerInterface;
 
 class HandlerResolverTest extends TestCase
 {
@@ -51,7 +51,7 @@ class HandlerResolverTest extends TestCase
     {
         $resolver = new HandlerResolver;
         $handler = $resolver->get(TestKernel::class);
-        self::assertInstanceOf(RequestHandlerInterface::class, $handler);
+        self::assertInstanceOf(Handler::class, $handler);
         self::assertInstanceOf(KernelAdapter::class, $handler);
     }
 }

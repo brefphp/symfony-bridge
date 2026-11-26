@@ -7,6 +7,7 @@ use Bref\Event\Http\HttpResponseWriter;
 use Bref\Runtime\ResponseStream;
 use Bref\SymfonyBridge\Http\KernelAdapter;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -113,6 +114,67 @@ class KernelAdapterTest extends TestCase
 
         self::assertSame('File content', $response['body']);
         self::assertFalse(file_exists($file));
+    }
+
+    public function test the kernel terminates when the response cannot end()
+    {
+        $log = [];
+        $kernel = $this->kernel(fn () => new Response('Hello'), $log);
+        $lambdaResponse = new class implements ResponseStream {
+            public function write(string $chunk): bool
+            {
+                return true;
+            }
+
+            public function end(): void
+            {
+                // E.g. the response is too big
+                throw new RuntimeException('The response cannot end');
+            }
+        };
+        $event = $this->event('abc.lambda-url.eu-west-3.on.aws');
+        $responseWriter = new HttpResponseWriter($lambdaResponse, $event, streamed: true);
+
+        try {
+            (new KernelAdapter($kernel))->writeResponse($event, Context::fake(), $responseWriter);
+            self::fail('The exception must reach Bref, to be reported as an invocation error');
+        } catch (RuntimeException $e) {
+            self::assertSame('The response cannot end', $e->getMessage());
+        }
+        self::assertSame(['terminate'], $log);
+    }
+
+    public function test streamed responses that the kernel already sent are kept()
+    {
+        $log = [];
+        $kernel = $this->kernel(function () {
+            $response = new StreamedResponse(function () {
+                echo 'Hello world';
+            });
+            // What the StreamedResponseListener of Symfony < 6.1 does
+            $response->send();
+
+            return $response;
+        }, $log);
+
+        $response = (new KernelAdapter($kernel))->handle($this->event('abc.execute-api.eu-west-3.amazonaws.com'), Context::fake());
+
+        self::assertSame('Hello world', $response['body']);
+    }
+
+    public function test what the application prints is not added to the response()
+    {
+        $log = [];
+        $kernel = $this->kernel(function () {
+            echo 'Printed';
+
+            return new Response('Hello');
+        }, $log);
+
+        $response = (new KernelAdapter($kernel))->handle($this->event('abc.execute-api.eu-west-3.amazonaws.com'), Context::fake());
+
+        self::assertSame('Hello', $response['body']);
+        $this->expectOutputString('Printed');
     }
 
     /**

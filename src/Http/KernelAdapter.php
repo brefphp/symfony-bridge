@@ -8,8 +8,10 @@ use Bref\Event\Http\HttpRequestEvent;
 use Bref\Event\Http\HttpResponseWriter;
 use Bref\Event\Http\Psr7Bridge;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
+use Throwable;
 
 /**
  * Runs a Symfony Kernel as Bref's HTTP handler.
@@ -49,15 +51,34 @@ class KernelAdapter extends HttpHandler
 
         $request = $this->symfonyFactory->createRequest(Psr7Bridge::convertRequest($event, $context));
 
-        $response = $this->kernel->handle($request);
+        // Symfony < 6.1 sends streamed responses while the kernel handles the request (StreamedResponseListener):
+        // that content is kept for the response, else the client would get an empty body
+        ob_start();
+        try {
+            $response = $this->kernel->handle($request);
+        } catch (Throwable $e) {
+            ob_end_flush();
+            throw $e;
+        }
+        $contentAlreadySent = (string) ob_get_clean();
+        if (! $response instanceof StreamedResponse) {
+            // Not the content of the response: printed like without the output buffer
+            echo $contentAlreadySent;
+            $contentAlreadySent = '';
+        }
 
         $responseWriter->start($response->getStatusCode(), $response->headers->all());
+        $responseWriter->write($contentAlreadySent);
         $responseWriter->capture(fn () => $response->sendContent());
-        // The client gets the response now: kernel.terminate listeners run after
-        $responseWriter->end();
 
-        if ($this->kernel instanceof TerminableInterface) {
-            $this->kernel->terminate($request, $response);
+        try {
+            // The client gets the response now: kernel.terminate listeners run after
+            $responseWriter->end();
+        } finally {
+            // Also when the response could not end (e.g. it is too big)
+            if ($this->kernel instanceof TerminableInterface) {
+                $this->kernel->terminate($request, $response);
+            }
         }
     }
 }

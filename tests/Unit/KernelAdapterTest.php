@@ -4,6 +4,7 @@ namespace Bref\SymfonyBridge\Test\Unit;
 
 use Bref\Context\Context;
 use Bref\Event\Http\HttpResponseWriter;
+use Bref\Runtime\InMemoryResponseStream;
 use Bref\Runtime\ResponseStream;
 use Bref\SymfonyBridge\Http\KernelAdapter;
 use PHPUnit\Framework\TestCase;
@@ -175,6 +176,57 @@ class KernelAdapterTest extends TestCase
 
         self::assertSame('Hello', $response['body']);
         $this->expectOutputString('Printed');
+    }
+
+    public function test a response that fails before it is sent is replaced by an error page()
+    {
+        $log = [];
+        $kernel = $this->kernel(fn () => new StreamedResponse(function () {
+            echo 'Hello';
+            throw new RuntimeException('The stream failed');
+        }), $log);
+        $lambdaResponse = new InMemoryResponseStream;
+        $event = $this->event('abc.execute-api.eu-west-3.amazonaws.com');
+        $responseWriter = new HttpResponseWriter($lambdaResponse, $event, streamed: false);
+
+        try {
+            (new KernelAdapter($kernel))->writeResponse($event, Context::fake(), $responseWriter);
+            self::fail('The exception must reach Bref, to be logged');
+        } catch (RuntimeException $e) {
+            self::assertSame('The stream failed', $e->getMessage());
+        }
+
+        // The client got the error page, then the kernel terminated
+        $response = json_decode($lambdaResponse->contents(), true);
+        self::assertSame(500, $response['statusCode']);
+        self::assertStringStartsWith('text/html', $response['headers']['Content-Type']);
+        self::assertStringContainsString('Internal Server Error', $response['body']);
+        self::assertStringNotContainsString('The stream failed', $response['body']);
+        self::assertTrue($lambdaResponse->ended);
+        self::assertSame(['terminate'], $log);
+    }
+
+    public function test a streamed response that fails after it started is not replaced()
+    {
+        $log = [];
+        $kernel = $this->kernel(fn () => new StreamedResponse(function () {
+            echo 'Hello';
+            flush();
+            throw new RuntimeException('The stream failed');
+        }), $log);
+        $lambdaResponse = new InMemoryResponseStream;
+        $event = $this->event('abc.lambda-url.eu-west-3.on.aws');
+        $responseWriter = new HttpResponseWriter($lambdaResponse, $event, streamed: true);
+
+        try {
+            (new KernelAdapter($kernel))->writeResponse($event, Context::fake(), $responseWriter);
+            self::fail('The exception must reach Bref, to end the response with the error');
+        } catch (RuntimeException $e) {
+            self::assertSame('The stream failed', $e->getMessage());
+        }
+
+        self::assertSame(['Hello'], array_slice($lambdaResponse->chunks, 1));
+        self::assertSame(['terminate'], $log);
     }
 
     /**
